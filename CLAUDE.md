@@ -1,9 +1,5 @@
 # Vue Vben Admin - Claude Context
 
-## Project Overview
-
-Vue Vben Admin is a modern Vue 3 admin template using TypeScript, Vite, and the latest frontend technologies. This is version 5.x which is a complete rewrite and not compatible with earlier versions.
-
 ## Key Technologies
 
 - **Vue 3** with Composition API
@@ -11,16 +7,17 @@ Vue Vben Admin is a modern Vue 3 admin template using TypeScript, Vite, and the 
 - **Vite** for fast development and building
 - **Pnpm** for package management (minimum version 9.12.0)
 - **Turbo** for monorepo management
-- **TailwindCSS** for styling
+- **TailwindCSS Version3** for styling
 - **Vitest** for unit testing
 - **Playwright** for E2E testing
 
 ## Project Structure
 
-This is a monorepo with the following structure:
+This is a monorepo with multiple applications:
 
-- `apps/web-naive/` - Main Naive UI application
+- `apps/web-naive/` - Naive UI implementation
 - `apps/backend-mock/` - Mock backend server
+- `playground/` - Development playground
 - `docs/` - Documentation site
 - `packages/` - Shared packages
 - `internal/` - Internal tooling
@@ -28,7 +25,10 @@ This is a monorepo with the following structure:
 ## Available Scripts
 
 - `pnpm dev` - Start development (turbo-run)
+- `pnpm dev:antd` - Start Ant Design app
+- `pnpm dev:ele` - Start Element Plus app
 - `pnpm dev:naive` - Start Naive UI app
+- `pnpm dev:play` - Start playground
 - `pnpm build` - Build all applications
 - `pnpm lint` - Run linting
 - `pnpm format` - Format code
@@ -43,7 +43,7 @@ This is a monorepo with the following structure:
 pnpm install
 
 # Start development server
-pnpm dev:naive
+pnpm dev:play  # or pnpm dev:antd, pnpm dev:ele, pnpm dev:naive
 
 # Build for production
 pnpm build
@@ -71,7 +71,7 @@ pnpm test:e2e
 - Node.js version >=20.10.0 required
 - Pnpm version >=9.12.0 required
 - Uses workspace protocol for internal packages
-- Uses Naive UI framework for the main application
+- Contains multiple UI framework implementations (Ant Design, Element Plus, Naive UI)
 - Has built-in internationalization support
 - Includes comprehensive permission/access control system
 - Features theming and customization options
