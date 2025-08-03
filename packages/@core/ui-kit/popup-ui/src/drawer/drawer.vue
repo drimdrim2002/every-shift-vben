@@ -103,10 +103,10 @@ const {
 // );
 
 /**
- * 在开启keepAlive情况下 直接通过浏览器按钮/手势等返回 不会关闭弹窗
+ * When keepAlive is enabled, going back directly through browser button/gesture will not close the popup
  */
 onDeactivated(() => {
-  // 如果弹窗没有被挂载到内容区域，则关闭弹窗
+  // If the popup is not mounted to the content area, close the popup
   if (!appendToMain.value) {
     props.drawerApi?.close();
   }
@@ -153,9 +153,9 @@ const getAppendTo = computed(() => {
 });
 
 /**
- * destroyOnClose功能完善
+ * Improve destroyOnClose functionality
  */
-// 是否打开过
+// Whether it has been opened
 const hasOpened = ref(false);
 const isClosed = ref(true);
 watch(

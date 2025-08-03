@@ -9,22 +9,22 @@ import type {
 import { filterTree, mapTree } from '@vben-core/shared/utils';
 
 /**
- * 根据 routes 生成菜单列表
- * @param routes - 路由配置列表
- * @param router - Vue Router 实例
- * @returns 生成的菜单列表
+ * Generate menu list based on routes
+ * @param routes - Route configuration list
+ * @param router - Vue Router instance
+ * @returns Generated menu list
  */
 function generateMenus(
   routes: RouteRecordRaw[],
   router: Router,
 ): MenuRecordRaw[] {
-  // 将路由列表转换为一个以 name 为键的对象映射
+  // Convert route list to an object mapping with name as key
   const finalRoutesMap: { [key: string]: string } = Object.fromEntries(
     router.getRoutes().map(({ name, path }) => [name, path]),
   );
 
   let menus = mapTree<ExRouteRecordRaw, MenuRecordRaw>(routes, (route) => {
-    // 获取最终的路由路径
+    // Get the final route path
     const path = finalRoutesMap[route.name as string] ?? route.path ?? '';
 
     const {
@@ -45,15 +45,15 @@ function generateMenus(
       title = '',
     } = meta;
 
-    // 确保菜单名称不为空
+    // Ensure menu name is not empty
     const name = (title || routeName || '') as string;
 
-    // 处理子菜单
+    // Handle sub-menus
     const resultChildren = hideChildrenInMenu
       ? []
       : ((children as MenuRecordRaw[]) ?? []);
 
-    // 设置子菜单的父子关系
+    // Set parent-child relationship for sub-menus
     if (resultChildren.length > 0) {
       resultChildren.forEach((child) => {
         child.parents = [...(route.parents ?? []), path];
@@ -61,7 +61,7 @@ function generateMenus(
       });
     }
 
-    // 确定最终路径
+    // Determine the final path
     const resultPath = hideChildrenInMenu ? redirect || path : link || path;
 
     return {
@@ -80,10 +80,10 @@ function generateMenus(
     };
   });
 
-  // 对菜单进行排序，避免order=0时被替换成999的问题
+  // Sort menus to avoid the issue of order=0 being replaced with 999
   menus = menus.sort((a, b) => (a?.order ?? 999) - (b?.order ?? 999));
 
-  // 过滤掉隐藏的菜单项
+  // Filter out hidden menu items
   return filterTree(menus, (menu) => !!menu.show);
 }
 

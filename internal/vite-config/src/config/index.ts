@@ -15,7 +15,7 @@ function defineConfig(
 ) {
   let projectType = type;
 
-  // 根据包是否存在 index.html,自动判断类型
+  // Auto-detect type based on whether index.html exists in the package
   if (projectType === 'auto') {
     const htmlPath = join(process.cwd(), 'index.html');
     projectType = existsSync(htmlPath) ? 'application' : 'library';

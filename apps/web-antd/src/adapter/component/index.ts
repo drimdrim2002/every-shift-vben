@@ -1,6 +1,6 @@
 /**
- * 通用组件共同的使用的基础组件，原先放在 adapter/form 内部，限制了使用范围，这里提取出来，方便其他地方使用
- * 可用于 vben-form、vben-modal、vben-drawer 等组件使用,
+ * Common basic components used by general components, originally placed inside adapter/form, which limited the usage scope, extracted here for easy use in other places
+ * Can be used by components like vben-form, vben-modal, vben-drawer, etc.
  */
 
 import type { Component } from 'vue';
@@ -74,7 +74,7 @@ const withDefaultPlaceholder = <T extends Component>(
         props?.placeholder ||
         attrs?.placeholder ||
         $t(`ui.placeholder.${type}`);
-      // 透传组件暴露的方法
+      // Pass through component exposed methods
       const innerRef = ref();
       expose(
         new Proxy(
@@ -95,7 +95,7 @@ const withDefaultPlaceholder = <T extends Component>(
   });
 };
 
-// 这里需要自行根据业务组件库进行适配，需要用到的组件都需要在这里类型说明
+// Here you need to adapt according to your business component library, all components that need to be used need to be declared here
 export type ComponentType =
   | 'ApiSelect'
   | 'ApiTreeSelect'
@@ -126,7 +126,7 @@ export type ComponentType =
 
 async function initComponentAdapter() {
   const components: Partial<Record<ComponentType, Component>> = {
-    // 如果你的组件体积比较大，可以使用异步加载
+    // If your component size is large, you can use async loading
     // Button: () =>
     // import('xxx').then((res) => res.Button),
     ApiSelect: withDefaultPlaceholder(
@@ -161,7 +161,7 @@ async function initComponentAdapter() {
     Checkbox,
     CheckboxGroup,
     DatePicker,
-    // 自定义默认按钮
+    // Custom default button
     DefaultButton: (props, { attrs, slots }) => {
       return h(Button, { ...props, attrs, type: 'default' }, slots);
     },
@@ -175,7 +175,7 @@ async function initComponentAdapter() {
     InputNumber: withDefaultPlaceholder(InputNumber, 'input'),
     InputPassword: withDefaultPlaceholder(InputPassword, 'input'),
     Mentions: withDefaultPlaceholder(Mentions, 'input'),
-    // 自定义主要按钮
+    // Custom primary button
     PrimaryButton: (props, { attrs, slots }) => {
       return h(Button, { ...props, attrs, type: 'primary' }, slots);
     },
@@ -192,12 +192,12 @@ async function initComponentAdapter() {
     Upload,
   };
 
-  // 将组件注册到全局共享状态中
+  // Register components to global shared state
   globalShareState.setComponents(components);
 
-  // 定义全局共享状态中的消息提示
+  // Define message notifications in global shared state
   globalShareState.defineMessage({
-    // 复制成功消息提示
+    // Copy success message notification
     copyPreferencesSuccess: (title, content) => {
       notification.success({
         description: content,

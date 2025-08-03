@@ -1,5 +1,5 @@
 /**
- * 参考 https://github.com/jspm/vite-plugin-jspm，调整为需要的功能
+ * Based on https://github.com/jspm/vite-plugin-jspm, adapted for required functionality
  */
 import type { GeneratorOptions } from '@jspm/generator';
 import type { Plugin } from 'vite';
@@ -32,7 +32,7 @@ async function getShimsUrl(provide: string) {
     // unpkg: `https://unpkg.com/es-module-shims@${version}/${shimsSubpath}`,
     jsdelivr: `https://cdn.jsdelivr.net/npm/es-module-shims@${version}/${shimsSubpath}`,
 
-    // 下面两个CDN不稳定，暂时不用
+    // The following two CDNs are unstable, temporarily disabled
     'jspm.io': `https://ga.jspm.io/npm:es-module-shims@${version}/${shimsSubpath}`,
   };
 
@@ -136,7 +136,7 @@ async function viteImportMapPlugin(
     },
     {
       buildEnd() {
-        // 未生成importmap时，抛出错误，防止被turbo缓存
+        // Throw error when importmap is not generated to prevent turbo caching
         if (!installed && !isSSR) {
           installError && console.error(installError);
           throw new Error('Importmap installation failed.');

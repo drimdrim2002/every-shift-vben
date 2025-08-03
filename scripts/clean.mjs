@@ -4,9 +4,9 @@ import { join, normalize } from 'node:path';
 const rootDir = process.cwd();
 
 /**
- * 递归查找并删除目标目录
- * @param {string} currentDir - 当前遍历的目录路径
- * @param {string[]} targets - 要删除的目标列表
+ * Recursively find and delete target directories
+ * @param {string} currentDir - Current directory path being traversed
+ * @param {string[]} targets - List of targets to delete
  */
 async function cleanTargetsRecursively(currentDir, targets) {
   const items = await fs.readdir(currentDir);
@@ -17,11 +17,11 @@ async function cleanTargetsRecursively(currentDir, targets) {
       const stat = await fs.lstat(itemPath);
 
       if (targets.includes(item)) {
-        // 匹配到目标目录或文件时直接删除
+        // Delete directly when target directory or file is matched
         await fs.rm(itemPath, { force: true, recursive: true });
         console.log(`Deleted: ${itemPath}`);
       } else if (stat.isDirectory()) {
-        // 只对目录进行递归处理
+        // Only process directories recursively
         await cleanTargetsRecursively(itemPath, targets);
       }
     } catch (error) {
@@ -33,7 +33,7 @@ async function cleanTargetsRecursively(currentDir, targets) {
 }
 
 (async function startCleanup() {
-  // 要删除的目录及文件名称
+  // Directory and file names to delete
   const targets = ['node_modules', 'dist', '.turbo', 'dist.zip'];
   const deleteLockFile = process.argv.includes('--del-lock');
   const cleanupTargets = [...targets];

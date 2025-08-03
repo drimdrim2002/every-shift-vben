@@ -19,7 +19,7 @@ describe('useAccessStore', () => {
 
   it('updates accessToken state correctly', () => {
     const store = useAccessStore();
-    expect(store.accessToken).toBeNull(); // 初始状态
+    expect(store.accessToken).toBeNull(); // Initial state
     store.setAccessToken('abc123');
     expect(store.accessToken).toBe('abc123');
   });
@@ -30,14 +30,14 @@ describe('useAccessStore', () => {
     expect(store.accessToken).toBe('xyz789');
   });
 
-  // 测试设置空的访问菜单列表
+  // Test setting empty access menu list
   it('handles empty accessMenus correctly', () => {
     const store = useAccessStore();
     store.setAccessMenus([]);
     expect(store.accessMenus).toEqual([]);
   });
 
-  // 测试设置空的访问路由列表
+  // Test setting empty access routes list
   it('handles empty accessRoutes correctly', () => {
     const store = useAccessStore();
     store.setAccessRoutes([]);

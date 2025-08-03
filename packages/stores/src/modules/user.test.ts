@@ -15,7 +15,7 @@ describe('useUserStore', () => {
     expect(store.userInfo).toEqual(userInfo);
   });
 
-  // 测试重置用户信息时的行为
+  // Test behavior when resetting user information
   it('clears userInfo and userRoles when setting null userInfo', () => {
     const store = useUserStore();
     store.setUserInfo({
@@ -29,7 +29,7 @@ describe('useUserStore', () => {
     expect(store.userRoles).toEqual([]);
   });
 
-  // 测试在没有用户角色时返回空数组
+  // Test returning empty array when no user roles are set
   it('returns an empty array for userRoles if not set', () => {
     const store = useUserStore();
     expect(store.userRoles).toEqual([]);

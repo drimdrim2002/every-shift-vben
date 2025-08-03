@@ -82,7 +82,7 @@ function defineApplicationConfig(userConfigPromise?: DefineApplicationOptions) {
         host: true,
         port,
         warmup: {
-          // 预热文件
+          // Pre-warm files
           clientFiles: [
             './index.html',
             './src/bootstrap.ts',
@@ -108,7 +108,7 @@ function createCssOptions(injectGlobalScss = true): CSSOptions {
           scss: {
             additionalData: (content: string, filepath: string) => {
               const relativePath = relative(root, filepath);
-              // apps下的包注入全局样式
+              // Inject global styles for packages under apps directory
               if (relativePath.startsWith(`apps${path.sep}`)) {
                 return `@use "@vben/styles/global" as *;\n${content}`;
               }

@@ -24,31 +24,35 @@ import LoginForm from '#/views/_core/authentication/login.vue';
 const notifications = ref<NotificationItem[]>([
   {
     avatar: 'https://avatar.vercel.sh/vercel.svg?text=VB',
-    date: '3小时前',
+    date: '3 hours ago',
     isRead: true,
-    message: '描述信息描述信息描述信息',
-    title: '收到了 14 份新周报',
+    message:
+      'Description information description information description information',
+    title: 'Received 14 new weekly reports',
   },
   {
     avatar: 'https://avatar.vercel.sh/1',
-    date: '刚刚',
+    date: 'Just now',
     isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '朱偏右 回复了你',
+    message:
+      'Description information description information description information',
+    title: 'Zhu Pianyou replied to you',
   },
   {
     avatar: 'https://avatar.vercel.sh/1',
     date: '2024-01-01',
     isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '曲丽丽 评论了你',
+    message:
+      'Description information description information description information',
+    title: 'Qu Lili commented on you',
   },
   {
     avatar: 'https://avatar.vercel.sh/satori',
-    date: '1天前',
+    date: '1 day ago',
     isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '代办提醒',
+    message:
+      'Description information description information description information',
+    title: 'Todo reminder',
   },
 ]);
 

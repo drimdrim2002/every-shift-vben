@@ -11,75 +11,75 @@ import { SidebarCollapseButton, SidebarFixedButton } from './widgets';
 
 interface Props {
   /**
-   * 折叠区域高度
+   * Collapse area height
    * @default 42
    */
   collapseHeight?: number;
   /**
-   * 折叠宽度
+   * Collapse width
    * @default 48
    */
   collapseWidth?: number;
   /**
-   * 隐藏的dom是否可见
+   * Whether hidden DOM is visible
    * @default true
    */
   domVisible?: boolean;
   /**
-   * 扩展区域宽度
+   * Extended area width
    */
   extraWidth: number;
   /**
-   * 固定扩展区域
+   * Fixed extended area
    * @default false
    */
   fixedExtra?: boolean;
   /**
-   * 头部高度
+   * Header height
    */
   headerHeight: number;
   /**
-   * 是否侧边混合模式
+   * Whether in sidebar mixed mode
    * @default false
    */
   isSidebarMixed?: boolean;
   /**
-   * 顶部margin
+   * Top margin
    * @default 60
    */
   marginTop?: number;
   /**
-   * 混合菜单宽度
+   * Mixed menu width
    * @default 80
    */
   mixedWidth?: number;
   /**
-   * 顶部padding
+   * Top padding
    * @default 60
    */
   paddingTop?: number;
   /**
-   * 是否显示
+   * Whether to show
    * @default true
    */
   show?: boolean;
   /**
-   * 显示折叠按钮
+   * Show collapse button
    * @default true
    */
   showCollapseButton?: boolean;
   /**
-   * 显示固定按钮
+   * Show fixed button
    * @default true
    */
   showFixedButton?: boolean;
   /**
-   * 主题
+   * Theme
    */
   theme: string;
 
   /**
-   * 宽度
+   * Width
    */
   width: number;
   /**
@@ -224,7 +224,7 @@ function handleMouseenter(e: MouseEvent) {
     return;
   }
 
-  // 未开启和未折叠状态不生效
+  // Not effective when not enabled and not collapsed
   if (expandOnHover.value) {
     return;
   }

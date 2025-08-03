@@ -30,8 +30,8 @@ export function setDefaultDrawerProps(props: Partial<DrawerProps>) {
 export function useVbenDrawer<
   TParentDrawerProps extends DrawerProps = DrawerProps,
 >(options: DrawerApiOptions = {}) {
-  // Drawer一般会抽离出来，所以如果有传入 connectedComponent，则表示为外部调用，与内部组件进行连接
-  // 外部的Drawer通过provide/inject传递api
+  // Drawer is generally extracted, so if connectedComponent is passed in, it represents external call, connecting with internal components
+  // External Drawer passes api through provide/inject
 
   const { connectedComponent } = options;
   if (connectedComponent) {
@@ -41,8 +41,8 @@ export function useVbenDrawer<
       (props: TParentDrawerProps, { attrs, slots }) => {
         provide(USER_DRAWER_INJECT_KEY, {
           extendApi(api: ExtendedDrawerApi) {
-            // 不能直接给 reactive 赋值，会丢失响应
-            // 不能用 Object.assign,会丢失 api 的原型函数
+            // Cannot directly assign value to reactive, will lose reactivity
+            // Cannot use Object.assign, will lose api prototype functions
             Object.setPrototypeOf(extendedApi, api);
           },
           options,
@@ -133,7 +133,7 @@ async function checkProps(api: ExtendedDrawerApi, attrs: Record<string, any>) {
 
   for (const attr of Object.keys(attrs)) {
     if (stateKeys.has(attr) && !['class'].includes(attr)) {
-      // connectedComponent存在时，不要传入Drawer的props，会造成复杂度提升，如果你需要修改Drawer的props，请使用 useVbenDrawer 或者api
+      // When connectedComponent exists, do not pass in Drawer props, which will increase complexity. If you need to modify Drawer props, please use useVbenDrawer or api
       console.warn(
         `[Vben Drawer]: When 'connectedComponent' exists, do not set props or slots '${attr}', which will increase complexity. If you need to modify the props of Drawer, please use useVbenDrawer or api.`,
       );

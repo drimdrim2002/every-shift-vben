@@ -18,7 +18,7 @@ export async function run(options: RunOptions) {
   //   (item) => item.packageJson.name === '@vben/website',
   // );
 
-  // 只显示有对应命令的包
+  // Only show packages with corresponding commands
   const selectPkgs = packages.filter((pkg) => {
     return (pkg?.packageJson as Record<string, any>)?.scripts?.[command];
   });
@@ -52,12 +52,12 @@ export async function run(options: RunOptions) {
 }
 
 /**
- * 过滤app包
+ * Filter app packages
  * @param root
  * @param packages
  */
 // async function findApps(root: string, packages: Package[]) {
-//   // apps内的
+//   // packages inside apps
 //   const appPackages = packages.filter((pkg) => {
 //     const viteConfigExists = fs.existsSync(join(pkg.dir, 'vite.config.mts'));
 //     return pkg.dir.startsWith(join(root, 'apps')) && viteConfigExists;

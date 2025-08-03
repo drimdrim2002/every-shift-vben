@@ -6,7 +6,7 @@ import { getStagedFiles } from '@vben/node-utils';
 
 import { circularDepsDetect } from 'circular-dependency-scanner';
 
-// 默认配置
+// Default configuration
 const DEFAULT_CONFIG = {
   allowedExtensions: ['.cjs', '.js', '.jsx', '.mjs', '.ts', '.tsx', '.vue'],
   ignoreDirs: [
@@ -20,10 +20,10 @@ const DEFAULT_CONFIG = {
     'packages/@core/ui-kit/menu-ui/src/',
     'packages/@core/ui-kit/popup-ui/src/',
   ],
-  threshold: 0, // 循环依赖的阈值
+  threshold: 0, // Threshold for circular dependencies
 } as const;
 
-// 类型定义
+// Type definitions
 type CircularDependencyResult = string[];
 
 interface CheckCircularConfig {
@@ -38,12 +38,12 @@ interface CommandOptions {
   verbose: boolean;
 }
 
-// 缓存机制
+// Cache mechanism
 const cache = new Map<string, CircularDependencyResult[]>();
 
 /**
- * 格式化循环依赖的输出
- * @param circles - 循环依赖结果
+ * Format the output of circular dependencies
+ * @param circles - Circular dependency results
  */
 function formatCircles(circles: CircularDependencyResult[]): void {
   if (circles.length === 0) {
@@ -59,11 +59,11 @@ function formatCircles(circles: CircularDependencyResult[]): void {
 }
 
 /**
- * 检查项目中的循环依赖
- * @param options - 检查选项
- * @param options.staged - 是否只检查暂存区文件
- * @param options.verbose - 是否显示详细信息
- * @param options.config - 自定义配置
+ * Check circular dependencies in the project
+ * @param options - Check options
+ * @param options.staged - Whether to only check staged files
+ * @param options.verbose - Whether to show detailed information
+ * @param options.config - Custom configuration
  * @returns Promise<void>
  */
 async function checkCircular({
@@ -72,16 +72,16 @@ async function checkCircular({
   verbose,
 }: CommandOptions): Promise<void> {
   try {
-    // 合并配置
+    // Merge configuration
     const finalConfig = {
       ...DEFAULT_CONFIG,
       ...config,
     };
 
-    // 生成忽略模式
+    // Generate ignore pattern
     const ignorePattern = `**/{${finalConfig.ignoreDirs.join(',')}}/**`;
 
-    // 检查缓存
+    // Check cache
     const cacheKey = `${staged}-${process.cwd()}-${ignorePattern}`;
     if (cache.has(cacheKey)) {
       const cachedResults = cache.get(cacheKey);
@@ -91,7 +91,7 @@ async function checkCircular({
       return;
     }
 
-    // 检测循环依赖
+    // Detect circular dependencies
     const results = await circularDepsDetect({
       absolute: staged,
       cwd: process.cwd(),
@@ -102,7 +102,7 @@ async function checkCircular({
       let files = await getStagedFiles();
       const allowedExtensions = new Set(finalConfig.allowedExtensions);
 
-      // 过滤文件列表
+      // Filter file list
       files = files.filter((file) => allowedExtensions.has(extname(file)));
 
       const circularFiles: CircularDependencyResult[] = [];
@@ -116,16 +116,16 @@ async function checkCircular({
         }
       }
 
-      // 更新缓存
+      // Update cache
       cache.set(cacheKey, circularFiles);
       verbose && formatCircles(circularFiles);
     } else {
-      // 更新缓存
+      // Update cache
       cache.set(cacheKey, results);
       verbose && formatCircles(results);
     }
 
-    // 如果发现循环依赖，只输出警告信息
+    // If circular dependencies are found, only output warning information
     if (results.length > 0) {
       console.log(
         '\n⚠️ Warning: Circular dependencies found, please check and fix',
@@ -140,8 +140,8 @@ async function checkCircular({
 }
 
 /**
- * 定义检查循环依赖的命令
- * @param cac - CAC实例
+ * Define command for checking circular dependencies
+ * @param cac - CAC instance
  */
 function defineCheckCircularCommand(cac: CAC): void {
   cac

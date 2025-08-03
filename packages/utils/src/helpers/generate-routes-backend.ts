@@ -9,7 +9,7 @@ import type {
 import { mapTree } from '@vben-core/shared/utils';
 
 /**
- * 动态生成路由 - 后端方式
+ * Dynamically generate routes - backend approach
  */
 async function generateRoutesByBackend(
   options: GenerateMenuAndRoutesOptions,
@@ -50,10 +50,10 @@ function convertRoutes(
       console.error('route name is required', route);
     }
 
-    // layout转换
+    // Layout conversion
     if (component && layoutMap[component]) {
       route.component = layoutMap[component];
-      // 页面组件转换
+      // Page component conversion
     } else if (component) {
       const normalizePath = normalizeViewPath(component);
       const pageKey = normalizePath.endsWith('.vue')
@@ -72,15 +72,15 @@ function convertRoutes(
 }
 
 function normalizeViewPath(path: string): string {
-  // 去除相对路径前缀
+  // Remove relative path prefix
   const normalizedPath = path.replace(/^(\.\/|\.\.\/)+/, '');
 
-  // 确保路径以 '/' 开头
+  // Ensure path starts with '/'
   const viewPath = normalizedPath.startsWith('/')
     ? normalizedPath
     : `/${normalizedPath}`;
 
-  // 这里耦合了vben-admin的目录结构
+  // This is coupled with vben-admin directory structure
   return viewPath.replace(/^\/views/, '');
 }
 export { generateRoutesByBackend };

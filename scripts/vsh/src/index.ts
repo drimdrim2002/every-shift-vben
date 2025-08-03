@@ -9,7 +9,7 @@ import { defineCodeWorkspaceCommand } from './code-workspace';
 import { defineLintCommand } from './lint';
 import { definePubLintCommand } from './publint';
 
-// 命令描述
+// Command descriptions
 const COMMAND_DESCRIPTIONS = {
   'check-circular': 'Check for circular dependencies',
   'check-dep': 'Check for unused dependencies',
