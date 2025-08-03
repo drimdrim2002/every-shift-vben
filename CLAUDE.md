@@ -17,13 +17,10 @@ Vue Vben Admin is a modern Vue 3 admin template using TypeScript, Vite, and the 
 
 ## Project Structure
 
-This is a monorepo with multiple applications:
+This is a monorepo with the following structure:
 
-- `apps/web-antd/` - Ant Design implementation
-- `apps/web-ele/` - Element Plus implementation
-- `apps/web-naive/` - Naive UI implementation
+- `apps/web-naive/` - Main Naive UI application
 - `apps/backend-mock/` - Mock backend server
-- `playground/` - Development playground
 - `docs/` - Documentation site
 - `packages/` - Shared packages
 - `internal/` - Internal tooling
@@ -31,10 +28,7 @@ This is a monorepo with multiple applications:
 ## Available Scripts
 
 - `pnpm dev` - Start development (turbo-run)
-- `pnpm dev:antd` - Start Ant Design app
-- `pnpm dev:ele` - Start Element Plus app
 - `pnpm dev:naive` - Start Naive UI app
-- `pnpm dev:play` - Start playground
 - `pnpm build` - Build all applications
 - `pnpm lint` - Run linting
 - `pnpm format` - Format code
@@ -49,7 +43,7 @@ This is a monorepo with multiple applications:
 pnpm install
 
 # Start development server
-pnpm dev:play  # or pnpm dev:antd, pnpm dev:ele, pnpm dev:naive
+pnpm dev:naive
 
 # Build for production
 pnpm build
@@ -77,7 +71,7 @@ pnpm test:e2e
 - Node.js version >=20.10.0 required
 - Pnpm version >=9.12.0 required
 - Uses workspace protocol for internal packages
-- Contains multiple UI framework implementations (Ant Design, Element Plus, Naive UI)
+- Uses Naive UI framework for the main application
 - Has built-in internationalization support
 - Includes comprehensive permission/access control system
 - Features theming and customization options
