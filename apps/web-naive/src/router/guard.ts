@@ -5,6 +5,7 @@ import { preferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { startProgress, stopProgress } from '@vben/utils';
 
+import { usePermissions } from '#/composables/use-permissions';
 import { accessRoutes, coreRouteNames } from '#/router/routes';
 import { useAuthStore } from '#/store';
 
@@ -106,6 +107,11 @@ function setupAccessGuard(router: Router) {
     accessStore.setAccessMenus(accessibleMenus);
     accessStore.setAccessRoutes(accessibleRoutes);
     accessStore.setIsAccessChecked(true);
+
+    // Check route-specific permissions
+    if (!checkRoutePermissions(to)) {
+      return '/403'; // Redirect to forbidden page
+    }
     const redirectPath = (from.query.redirect ??
       (to.path === preferences.app.defaultHomePath
         ? userInfo.homePath || preferences.app.defaultHomePath
@@ -115,6 +121,34 @@ function setupAccessGuard(router: Router) {
       ...router.resolve(decodeURIComponent(redirectPath)),
       replace: true,
     };
+  });
+}
+
+/**
+ * Check route-specific permissions
+ */
+function checkRoutePermissions(route: any): boolean {
+  // Skip permission check for routes without authority meta
+  if (!route.meta?.authority) {
+    return true;
+  }
+
+  const { hasPermission, hasAnyRole, isAdmin } = usePermissions();
+  const requiredAuthorities = route.meta.authority as string[];
+
+  // Admin bypasses all permission checks
+  if (isAdmin) {
+    return true;
+  }
+
+  // Check if user has any of the required authorities
+  return requiredAuthorities.some((authority) => {
+    // Check if it's a role check
+    if (!authority.includes(':')) {
+      return hasAnyRole([authority]);
+    }
+    // Check if it's a permission check
+    return hasPermission(authority);
   });
 }
 

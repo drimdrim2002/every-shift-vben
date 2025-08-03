@@ -41,6 +41,12 @@ export interface Database {
           updated_at?: string;
           username?: null | string;
           website?: null | string;
+          email?: null | string;
+          phone?: null | string;
+          company?: null | string;
+          job_title?: null | string;
+          department?: null | string;
+          is_active?: boolean;
         };
         Row: {
           avatar_url: null | string;
@@ -50,6 +56,12 @@ export interface Database {
           updated_at: string;
           username: null | string;
           website: null | string;
+          email: null | string;
+          phone: null | string;
+          company: null | string;
+          job_title: null | string;
+          department: null | string;
+          is_active: boolean;
         };
         Update: {
           avatar_url?: null | string;
@@ -59,6 +71,12 @@ export interface Database {
           updated_at?: string;
           username?: null | string;
           website?: null | string;
+          email?: null | string;
+          phone?: null | string;
+          company?: null | string;
+          job_title?: null | string;
+          department?: null | string;
+          is_active?: boolean;
         };
       };
       // Role permissions table

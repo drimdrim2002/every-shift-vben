@@ -37,6 +37,14 @@ const routes: RouteRecordRaw[] = [
         path: '/demos/form',
         component: () => import('#/views/demos/form/basic.vue'),
       },
+      {
+        meta: {
+          title: 'Supabase API Test',
+        },
+        name: 'SupabaseTest',
+        path: '/demos/supabase-test',
+        component: () => import('#/views/examples/supabase-test.vue'),
+      },
     ],
   },
 ];

@@ -1,10 +1,11 @@
 import type { RouteRecordStringComponent } from '@vben/types';
 
-import { requestClient } from '#/api/request';
+import { supabaseGetAllMenusApi } from './supabase-menu';
 
 /**
- * 获取用户所有菜单
+ * 获取用户所有菜单 - 현재 Supabase 구현으로 전환
+ * Get all user menus - switched to Supabase implementation
  */
-export async function getAllMenusApi() {
-  return requestClient.get<RouteRecordStringComponent[]>('/menu/all');
+export async function getAllMenusApi(): Promise<RouteRecordStringComponent[]> {
+  return supabaseGetAllMenusApi();
 }
