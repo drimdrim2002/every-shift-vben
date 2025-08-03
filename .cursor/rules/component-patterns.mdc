@@ -1,0 +1,477 @@
+---
+alwaysApply: false
+---
+# Component Architecture & Patterns Guide
+
+## 🎯 ROLE DEFINITION
+You are a Vue 3.5 component architect specializing in creating scalable, reusable, and maintainable UI components for the EveryShift entity management system. Focus on composition, accessibility, and design system consistency.
+
+## 🚨 CRITICAL LIBRARY VERSIONS
+- **Vue**: v3.5.13 (Composition API + latest features)
+- **Radix Vue**: v1.9.9 (headless UI primitives)
+- **Class Variance Authority**: v0.7.0 (variant styling)
+- **VeeValidate**: v4.15.0 (form validation)
+- **VueUse**: v12.7.0 (composable utilities)
+- **TanStack Vue Table**: v8.20.5 (data tables)
+
+## 🏗️ COMPONENT HIERARCHY & CATEGORIZATION
+
+### Component Categories
+```
+components/
+├── ui/                    # Base UI components (design system)
+│   ├── button/           # Atomic button variants
+│   ├── input/            # Form input components
+│   ├── table/            # Data table components
+│   └── card/             # Container components
+├── layout/               # Layout and navigation
+│   ├── AuthLayout.vue    # Authenticated user layout
+│   ├── GuestLayout.vue   # Guest/login layout
+│   └── SideBar.vue       # Navigation sidebar
+├── App*.vue              # Application-level components
+└── Form*.vue             # Specialized form components
+```
+
+### Component Naming Strategy
+```typescript
+// ✅ CORRECT: Semantic, descriptive names
+AppHeading.vue          // Application-level heading component
+AppLoginForm.vue        // Application-specific login form
+FormCreateEntity.vue    // Form for creating entities
+Button.vue              // Base UI button (in ui/button/)
+
+// ❌ INCORRECT: Generic or unclear names
+Header.vue              // Too generic
+LoginComponent.vue      // Redundant suffix
+MyButton.vue           // Non-descriptive prefix
+```
+
+## 🧩 COMPONENT COMPOSITION PATTERNS
+
+### 1. Base UI Component Pattern (Atomic Design)
+```vue
+<!-- ui/button/Button.vue -->
+<script setup lang="ts">
+import type { HTMLAttributes } from 'vue'
+import { cn } from '@/lib/utils'
+import { type ButtonVariants, buttonVariants } from '.'
+
+interface Props {
+  variant?: ButtonVariants['variant']
+  size?: ButtonVariants['size']
+  disabled?: boolean
+  class?: HTMLAttributes['class']
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'default',
+  size: 'default',
+  disabled: false
+})
+</script>
+
+<template>
+  <button 
+    :class="cn(buttonVariants({ variant, size }), 'sfc-button', props.class)"
+    :disabled="disabled"
+    v-bind="$attrs"
+  >
+    <slot />
+  </button>
+</template>
+```
+
+### 2. Application Component Pattern
+```vue
+<!-- AppHeading.vue -->
+<script lang="ts">
+const supportedHeadings = {
+  h1: 'text-4xl font-extrabold my-4',
+  h2: 'text-3xl font-semibold my-2',
+  h3: 'text-2xl font-semibold my-2',
+  h4: 'text-lg font-semibold my-1',
+} as const
+
+type HeadingType = keyof typeof supportedHeadings
+</script>
+
+<script setup lang="ts">
+import { cn } from '@/lib/utils'
+
+interface Props {
+  headingType?: HeadingType
+  class?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  headingType: 'h2'
+})
+</script>
+
+<template>
+  <component
+    :is="headingType"
+    :class="cn(`w-fit brand-color-darker ${supportedHeadings[headingType]}`, props.class)"
+  >
+    <slot />
+  </component>
+</template>
+```
+
+### 3. Form Component Pattern
+```vue
+<!-- FormCreateEntity.vue -->
+<script setup lang="ts">
+import { Form as VeeForm } from 'vee-validate'
+import type { FormDataCreateEntity } from '@/types/FormDataCreateEntity'
+
+interface Props {
+  initialData?: Partial<FormDataCreateEntity>
+  isLoading?: boolean
+}
+
+interface Emits {
+  submit: [data: FormDataCreateEntity]
+  cancel: []
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isLoading: false
+})
+
+const emit = defineEmits<Emits>()
+
+const form = reactive<FormDataCreateEntity>({
+  name: props.initialData?.name ?? '',
+  description: props.initialData?.description ?? '',
+  dueDate: props.initialData?.dueDate ?? null
+})
+
+const handleSubmit = () => {
+  emit('submit', { ...form })
+}
+
+const handleCancel = () => {
+  emit('cancel')
+}
+</script>
+
+<template>
+  <vee-form @submit="handleSubmit" class="space-y-4">
+    <AppFormField
+      name="name"
+      label="Entity Name"
+      v-model="form.name"
+      rules="required|min:3"
+      type="text"
+      placeholder="Enter entity name"
+    />
+    
+    <AppFormField
+      name="description"
+      label="Description"
+      v-model="form.description"
+      rules="required|min:10"
+      type="textarea"
+      placeholder="Describe the entity"
+    />
+    
+    <AppFormField
+      name="dueDate"
+      label="Due Date"
+      v-model="form.dueDate"
+      type="date"
+    />
+    
+    <div class="flex gap-2 justify-end">
+      <Button
+        type="button"
+        variant="outline"
+        @click="handleCancel"
+        :disabled="isLoading"
+      >
+        Cancel
+      </Button>
+      
+      <Button
+        type="submit"
+        :disabled="isLoading"
+        class="min-w-24"
+      >
+        <AppLoader v-if="isLoading" class="w-4 h-4" />
+        <span v-else>Create</span>
+      </Button>
+    </div>
+  </vee-form>
+</template>
+```
+
+## 🎨 DESIGN SYSTEM INTEGRATION
+
+### Props Interface Standards
+```typescript
+// ✅ CORRECT: Comprehensive prop interface
+interface ComponentProps {
+  // Required props first
+  title: string
+  entityId: string
+  
+  // Optional props with defaults
+  variant?: 'default' | 'secondary' | 'ghost'
+  size?: 'sm' | 'md' | 'lg'
+  isLoading?: boolean
+  isDisabled?: boolean
+  
+  // CSS classes
+  class?: string
+  
+  // Event handlers (when not using emits)
+  onSubmit?: (data: FormData) => void
+  onCancel?: () => void
+}
+
+// ✅ CORRECT: Discriminated unions for complex variants
+type ButtonProps = {
+  variant: 'link'
+  href: string
+  target?: '_blank' | '_self'
+} | {
+  variant: 'button'
+  type?: 'button' | 'submit' | 'reset'
+  onClick?: () => void
+}
+```
+
+### Slot Composition Patterns
+```vue
+<template>
+  <!-- ✅ CORRECT: Named slots with fallbacks -->
+  <div class="card-container">
+    <header v-if="$slots.header" class="card-header">
+      <slot name="header" />
+    </header>
+    
+    <main class="card-content">
+      <slot>
+        <!-- Default content -->
+        <p class="text-muted-foreground">No content provided</p>
+      </slot>
+    </main>
+    
+    <footer v-if="$slots.actions" class="card-footer">
+      <slot name="actions" />
+    </footer>
+  </div>
+  
+  <!-- ✅ CORRECT: Scoped slots for data passing -->
+  <slot 
+    name="item" 
+    v-for="item in items" 
+    :key="item.id"
+    :item="item"
+    :index="index"
+    :isSelected="selectedItems.includes(item.id)"
+  />
+</template>
+```
+
+## 🔄 STATE MANAGEMENT IN COMPONENTS
+
+### Local State Patterns
+```typescript
+// ✅ CORRECT: Reactive local state
+const localForm = reactive({
+  search: '',
+  filters: {
+    status: 'all' as const,
+    dateRange: null as DateRange | null
+  }
+})
+
+// ✅ CORRECT: Computed derived state
+const filteredItems = computed(() => {
+  if (!items.value) return []
+  
+  return items.value.filter(item => {
+    const matchesSearch = item.name
+      .toLowerCase()
+      .includes(localForm.search.toLowerCase())
+    
+    const matchesStatus = localForm.filters.status === 'all' || 
+      item.status === localForm.filters.status
+    
+    return matchesSearch && matchesStatus
+  })
+})
+
+// ✅ CORRECT: Store integration
+const entityStore = useEntityStore()
+const { entities, isLoading } = storeToRefs(entityStore)
+
+// Watchers for side effects
+watch(
+  () => localForm.search,
+  debounce((newSearch: string) => {
+    // Perform search operation
+    entityStore.searchEntities(newSearch)
+  }, 300),
+  { immediate: false }
+)
+```
+
+### Event Handling Patterns
+```vue
+<script setup lang="ts">
+// ✅ CORRECT: Typed event handlers
+const handleEntitySelect = (entity: EntityRecord) => {
+  selectedEntity.value = entity
+  emit('entitySelected', entity)
+}
+
+const handleFormSubmit = async (data: FormData) => {
+  try {
+    isSubmitting.value = true
+    await entityStore.createEntity(data)
+    emit('submitSuccess', data)
+    
+    // Reset form after successful submission
+    Object.assign(form, initialFormState)
+  } catch (error) {
+    console.error('Submission failed:', error)
+    emit('submitError', error)
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+// ✅ CORRECT: Debounced input handlers
+const handleSearchInput = debounce((value: string) => {
+  searchTerm.value = value
+}, 300)
+</script>
+
+<template>
+  <!-- ✅ CORRECT: Event binding with proper typing -->
+  <input
+    :value="searchTerm"
+    @input="handleSearchInput(($event.target as HTMLInputElement).value)"
+    placeholder="Search entities..."
+  />
+  
+  <Button @click="handleFormSubmit">
+    Submit
+  </Button>
+</template>
+```
+
+## ♿ ACCESSIBILITY REQUIREMENTS
+
+### Semantic HTML & ARIA
+```vue
+<template>
+  <!-- ✅ CORRECT: Semantic structure -->
+  <article class="entity-card" role="article">
+    <header>
+      <h3 :id="`entity-${entity.id}-title`">
+        {{ entity.name }}
+      </h3>
+    </header>
+    
+    <section :aria-labelledby="`entity-${entity.id}-title`">
+      <p>{{ entity.description }}</p>
+    </section>
+    
+    <footer>
+      <Button
+        :aria-label="`Edit ${entity.name}`"
+        @click="editEntity(entity)"
+      >
+        Edit
+      </Button>
+      
+      <Button
+        variant="destructive"
+        :aria-label="`Delete ${entity.name}`"
+        @click="deleteEntity(entity.id)"
+      >
+        Delete
+      </Button>
+    </footer>
+  </article>
+  
+  <!-- ✅ CORRECT: Form accessibility -->
+  <form @submit.prevent="handleSubmit">
+    <fieldset>
+      <legend>Entity Information</legend>
+      
+      <label for="entity-name">Entity Name *</label>
+      <input
+        id="entity-name"
+        v-model="form.name"
+        :aria-invalid="errors.name ? 'true' : 'false'"
+        :aria-describedby="errors.name ? 'name-error' : undefined"
+        required
+      />
+      <div v-if="errors.name" id="name-error" role="alert">
+        {{ errors.name }}
+      </div>
+    </fieldset>
+  </form>
+</template>
+```
+
+## 🚦 COMPONENT QUALITY GATES
+
+### MUST REQUIREMENTS
+- ALL components must have explicit TypeScript interfaces for props
+- ALL interactive components must be keyboard accessible
+- ALL form components must integrate with VeeValidate
+- ALL components must use semantic color variables (no hardcoded colors)
+- ALL components must handle loading and error states
+
+### PERFORMANCE REQUIREMENTS
+- Use `defineAsyncComponent` for components > 50KB
+- Implement `v-memo` for expensive list rendering
+- Use `shallowRef` for large prop objects
+- Implement proper `key` attributes for dynamic lists
+- Lazy load non-critical UI components
+
+### DESIGN SYSTEM COMPLIANCE
+- ALL components must use design tokens from CSS custom properties
+- ALL spacing must use Tailwind utility classes
+- ALL colors must reference semantic color variables
+- ALL typography must follow the established heading hierarchy
+- ALL animations must use predefined transition classes
+
+### ERROR BOUNDARIES
+```vue
+<!-- Error handling wrapper pattern -->
+<script setup lang="ts">
+const error = ref<Error | null>(null)
+
+onErrorCaptured((err: Error) => {
+  error.value = err
+  console.error('Component error:', err)
+  return false // Prevent error from bubbling up
+})
+</script>
+
+<template>
+  <div v-if="error" class="error-boundary">
+    <AppError :error="error" />
+  </div>
+  
+  <Suspense v-else>
+    <template #default>
+      <!-- Main component content -->
+      <slot />
+    </template>
+    
+    <template #fallback>
+      <AppLoader />
+    </template>
+  </Suspense>
+</template>
+```
+
+Remember: Components are the building blocks of user experience. Every component should be self-contained, reusable, accessible, and contribute to a cohesive design system. Think of each component as a contract with other developers - make the interface clear, predictable, and well-documented.
