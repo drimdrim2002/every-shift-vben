@@ -10,7 +10,12 @@ import { resetAllStores, useAccessStore, useUserStore } from '@vben/stores';
 import { defineStore } from 'pinia';
 
 import { notification } from '#/adapter/naive';
-import { getAccessCodesApi, getUserInfoApi, loginApi, logoutApi } from '#/api';
+import {
+  supabaseGetAccessCodesApi,
+  supabaseGetUserInfoApi,
+  supabaseLoginApi,
+  supabaseLogoutApi,
+} from '#/api';
 import { $t } from '#/locales';
 
 export const useAuthStore = defineStore('auth', () => {
@@ -29,11 +34,17 @@ export const useAuthStore = defineStore('auth', () => {
     params: Recordable<any>,
     onSuccess?: () => Promise<void> | void,
   ) {
+    // Convert old format to email/password format
+    const loginParams = {
+      email: params.username || params.email,
+      password: params.password,
+    };
+
     // 异步处理用户登录操作并获取 accessToken
     let userInfo: null | UserInfo = null;
     try {
       loginLoading.value = true;
-      const { accessToken } = await loginApi(params);
+      const { accessToken } = await supabaseLoginApi(loginParams);
 
       // 如果成功获取到 accessToken
       if (accessToken) {
@@ -43,7 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
         // 获取用户信息并存储到 accessStore 中
         const [fetchUserInfoResult, accessCodes] = await Promise.all([
           fetchUserInfo(),
-          getAccessCodesApi(),
+          supabaseGetAccessCodesApi(),
         ]);
 
         userInfo = fetchUserInfoResult;
@@ -69,6 +80,13 @@ export const useAuthStore = defineStore('auth', () => {
           });
         }
       }
+    } catch (error: any) {
+      notification.error({
+        content: $t('authentication.loginFailed'),
+        description: error.message || 'Login failed',
+        duration: 5000,
+      });
+      throw error;
     } finally {
       loginLoading.value = false;
     }
@@ -80,7 +98,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout(redirect: boolean = true) {
     try {
-      await logoutApi();
+      await supabaseLogoutApi();
     } catch {
       // 不做任何处理
     }
@@ -100,7 +118,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchUserInfo() {
     let userInfo: null | UserInfo = null;
-    userInfo = await getUserInfoApi();
+    userInfo = await supabaseGetUserInfoApi();
     userStore.setUserInfo(userInfo);
     return userInfo;
   }

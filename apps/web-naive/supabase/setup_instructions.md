@@ -56,6 +56,17 @@ This will:
 - Assign default 'employee' role to existing users
 - Optionally make a specific user admin (uncomment and update email)
 
+### Step 5: Create Test Users (Optional)
+
+After setting up the database, you can create test users by:
+
+1. First, sign up these users through your application:
+   - admin@example.com / 123456
+   - manager@example.com / 123456
+   - employee@example.com / 123456
+
+2. Then run `migrations/05_create_test_users.sql` to assign proper roles to these test accounts.
+
 ## 3. Verify Setup
 
 After running all migrations, you should see these tables in your Database section:

@@ -51,7 +51,8 @@ const coreRoutes: RouteRecordRaw[] = [
       {
         name: 'Login',
         path: 'login',
-        component: () => import('#/views/_core/authentication/login.vue'),
+        component: () =>
+          import('#/views/_core/authentication/supabase-login.vue'),
         meta: {
           title: $t('page.auth.login'),
         },
@@ -85,9 +86,17 @@ const coreRoutes: RouteRecordRaw[] = [
       {
         name: 'Register',
         path: 'register',
-        component: () => import('#/views/_core/authentication/register.vue'),
+        component: () => import('#/views/_core/authentication/signup.vue'),
         meta: {
           title: $t('page.auth.register'),
+        },
+      },
+      {
+        name: 'Signup',
+        path: 'signup',
+        component: () => import('#/views/_core/authentication/signup.vue'),
+        meta: {
+          title: 'Sign Up',
         },
       },
     ],

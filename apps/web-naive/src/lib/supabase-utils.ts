@@ -60,6 +60,13 @@ export const authUtils = {
     const { data, error } = await supabase.auth.updateUser({ password });
     return { data, error };
   },
+
+  /**
+   * Get current user
+   */
+  async getCurrentUser() {
+    return await supabase.auth.getUser();
+  },
 };
 
 /**
