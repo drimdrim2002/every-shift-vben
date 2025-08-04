@@ -1,0 +1,212 @@
+---
+description: ESLint compliance rules for Vue Vben Admin project to prevent common linting errors
+globs: **/*.js, **/*.ts, **/*.vue, **/*.jsx, **/*.tsx
+---
+
+# ESLint Compliance Rules for Vue Vben Admin
+
+## Project-Specific ESLint Configuration
+This project uses a strict ESLint configuration with the following key rules that often cause errors:
+
+### Console and Debugging
+- `no-console`: Only allows `console.warn()` and `console.error()`
+- `no-debugger`: Prohibits debugger statements
+
+```typescript
+// ❌ FORBIDDEN - Will cause ESLint errors
+console.log('debug info');
+console.debug('debug info');
+console.info('info');
+debugger;
+
+// ✅ ALLOWED - ESLint compliant
+console.warn('warning message');
+console.error('error message');
+```
+
+### Global Object Access
+- `no-restricted-globals`: Prohibits `global` and `self`, requires `globalThis`
+
+```typescript
+// ❌ FORBIDDEN - Will cause ESLint errors
+global.process.env.NODE_ENV;
+self.location.href;
+process.env.NODE_ENV; // prefer globalThis in cross-environment code
+
+// ✅ ALLOWED - ESLint compliant
+globalThis.process.env.NODE_ENV;
+globalThis.self?.location.href;
+typeof window !== 'undefined' && window.location.href; // browser-specific
+```
+
+### Strict Equality
+- `eqeqeq`: Always use strict equality operators
+
+```typescript
+// ❌ FORBIDDEN - Will cause ESLint errors
+if (value == null) {}
+if (type != 'undefined') {}
+if (process.env.NODE_ENV != 'production') {}
+
+// ✅ ALLOWED - ESLint compliant
+if (value === null) {}
+if (type !== 'undefined') {}
+if (process.env.NODE_ENV !== 'production') {}
+```
+
+### Type Checking Best Practices
+- `valid-typeof`: Requires string literals in typeof comparisons
+
+```typescript
+// ❌ SUBOPTIMAL - Verbose but works
+if (typeof import.meta !== 'undefined') {}
+if (typeof process !== 'undefined') {}
+
+// ✅ PREFERRED - More concise and clear
+if (import.meta !== undefined) {}
+if (globalThis.process !== undefined) {}
+```
+
+## Environment-Specific Patterns
+
+### Browser Environment Detection
+```typescript
+// ✅ Standard pattern for browser detection
+if (typeof window !== 'undefined') {
+  // Browser-specific code
+  const href = window.location.href;
+}
+```
+
+### Cross-Environment Variable Access
+```typescript
+// ✅ Recommended pattern for cross-environment compatibility
+function getEnvVar(key: string): string | undefined {
+  // Browser environment (Vite)
+  if (typeof window !== 'undefined' && import.meta !== undefined) {
+    return import.meta.env?.[key];
+  }
+  
+  // Node.js environment (Nitro/Server)
+  if (globalThis.process !== undefined) {
+    return globalThis.process.env?.[key];
+  }
+  
+  return undefined;
+}
+```
+
+### Node.js Environment Detection
+```typescript
+// ✅ ESLint-compliant Node.js detection
+if (globalThis.process !== undefined && globalThis.process.env) {
+  const nodeEnv = globalThis.process.env.NODE_ENV;
+}
+
+// ✅ Alternative when you're sure it's Node.js context
+if (typeof process !== 'undefined' && process.env) {
+  const nodeEnv = process.env.NODE_ENV;
+}
+```
+
+## Vue.js Specific Patterns
+
+### Vue Composition API
+```typescript
+// ✅ ESLint-compliant Vue composable
+import { ref, computed } from 'vue';
+
+export function useEnvironment() {
+  const isProduction = computed(() => {
+    if (typeof window !== 'undefined' && import.meta !== undefined) {
+      return import.meta.env?.MODE === 'production';
+    }
+    return globalThis.process?.env?.NODE_ENV === 'production';
+  });
+  
+  return { isProduction };
+}
+```
+
+### Vue Component Console Usage
+```vue
+<script setup lang="ts">
+// ❌ FORBIDDEN in components
+// console.log('component mounted');
+
+// ✅ ALLOWED for important warnings/errors
+console.warn('Component deprecated, use NewComponent instead');
+console.error('Critical configuration missing');
+</script>
+```
+
+## Common Anti-Patterns to Avoid
+
+### Mixed Environment Access
+```typescript
+// ❌ PROBLEMATIC - Inconsistent environment handling
+function badEnvAccess() {
+  const viteVar = import.meta.env.VITE_APP_URL; // browser only
+  const nodeVar = process.env.NODE_ENV; // node only
+  return { viteVar, nodeVar }; // will fail in cross-environment
+}
+
+// ✅ GOOD - Consistent cross-environment handling
+function goodEnvAccess() {
+  const appUrl = getEnvVar('VITE_APP_URL');
+  const nodeEnv = getEnvVar('NODE_ENV');
+  return { appUrl, nodeEnv };
+}
+```
+
+### Debugging Code
+```typescript
+// ❌ FORBIDDEN - Will be caught by ESLint
+function debugFunction() {
+  console.log('entering function'); // ESLint error
+  debugger; // ESLint error
+  
+  if (someCondition == true) {} // ESLint error (use ===)
+}
+
+// ✅ GOOD - Production-ready code
+function productionFunction() {
+  // Use proper error handling instead of console.log
+  try {
+    // Function logic
+  } catch (error) {
+    console.error('Function failed:', error); // Allowed
+  }
+}
+```
+
+## Quick Reference
+
+### Allowed Console Methods
+- ✅ `console.warn()`
+- ✅ `console.error()`
+- ❌ `console.log()`
+- ❌ `console.debug()`
+- ❌ `console.info()`
+
+### Recommended Global Access
+- ✅ `globalThis.process`
+- ✅ `typeof window !== 'undefined'`
+- ✅ `import.meta !== undefined`
+- ❌ `global`
+- ❌ `self`
+- ❌ `typeof process !== 'undefined'` (prefer globalThis in cross-env code)
+
+### Comparison Operators
+- ✅ `===` and `!==`
+- ❌ `==` and `!=`
+
+## Testing ESLint Compliance
+Before committing code, always run:
+```bash
+pnpm lint
+# or
+pnpm lint:fix  # for auto-fixable issues
+```
+
+These rules ensure your code will pass the project's strict ESLint configuration and maintain consistency across the Vue Vben Admin codebase.

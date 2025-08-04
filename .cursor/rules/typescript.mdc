@@ -55,3 +55,65 @@ globs: **/*.ts, **/*.tsx, **/*.d.ts
 - Use the Factory pattern for object creation
 - Leverage dependency injection
 - Use the Module pattern for encapsulation
+
+## ESLint Compliance Rules
+
+### Console Usage
+- NEVER use `console.debug()` or `console.log()` - ESLint will error
+- ONLY use `console.warn()` or `console.error()` for logging
+- For debugging, prefer `console.warn()` over `console.debug()`
+
+### Global Object Access
+- NEVER use `global`, `self`, or `window` directly when possible
+- ALWAYS use `globalThis` instead of `global` or `self`
+- For `process` access: use `globalThis.process` instead of `process`
+- For `window` checks: use `typeof window !== 'undefined'` (allowed)
+
+### Type Checking and Comparisons
+- ALWAYS use strict equality (`===` and `!==`) instead of `==` or `!=`
+- For `typeof` checks: use `!== 'undefined'` or `=== 'undefined'`
+- For object existence: use `!== undefined` instead of `!= undefined`
+- Example: `import.meta !== undefined` not `typeof import.meta !== 'undefined'`
+
+### Environment Variable Access
+- Browser (Vite): use `import.meta.env[key]` 
+- Node.js: use `globalThis.process.env[key]` or `process.env[key]`
+- Check existence: `import.meta !== undefined && import.meta.env`
+- Cross-environment: create helper functions that check both
+
+### Common ESLint Error Patterns to Avoid
+```typescript
+// ❌ BAD - ESLint will error
+console.debug('message');
+console.log('message');
+if (typeof import.meta !== 'undefined') // prefer direct check
+if (process.env.VAR == 'value') // use strict equality
+global.something // use globalThis instead
+
+// ✅ GOOD - ESLint compliant
+console.warn('message');
+console.error('message');
+if (import.meta !== undefined)
+if (process.env.VAR === 'value')
+globalThis.process.env.VAR
+```
+
+### Cross-Environment Patterns
+```typescript
+// ✅ GOOD - Browser + Node.js compatible
+function getEnvVar(key: string): string | undefined {
+  // Browser environment (Vite)
+  if (typeof window !== 'undefined') {
+    if (import.meta !== undefined && import.meta.env) {
+      return import.meta.env[key];
+    }
+  }
+  
+  // Node.js environment
+  if (globalThis.process !== undefined && globalThis.process.env) {
+    return globalThis.process.env[key];
+  }
+  
+  return undefined;
+}
+```
