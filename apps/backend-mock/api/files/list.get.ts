@@ -33,15 +33,15 @@ async function getFilesWithSupabase(event: any, userinfo: any) {
     const isImage =
       query.isImage === 'true'
         ? true
-        : (query.isImage === 'false'
+        : query.isImage === 'false'
           ? false
-          : null);
+          : null;
     const isPublic =
       query.isPublic === 'true'
         ? true
-        : (query.isPublic === 'false'
+        : query.isPublic === 'false'
           ? false
-          : null);
+          : null;
     const sortBy = (query.sortBy as string) || 'created_at';
     const sortOrder = (query.sortOrder as string) || 'desc';
 
