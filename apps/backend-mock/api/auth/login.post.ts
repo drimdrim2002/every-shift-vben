@@ -6,22 +6,15 @@ import { generateAccessToken, generateRefreshToken } from '~/utils/jwt-utils';
 import { forbiddenResponse } from '~/utils/response';
 
 // Supabase 로그인 로직
-async function loginWithSupabase(
-  event: any,
-  username: string,
-  password: string,
-  email?: string,
-) {
+async function loginWithSupabase(event: any, email: string, password: string) {
   // @ts-ignore - 동적 import
   const { supabase } = await import('@vben/utils');
-
-  const loginEmail = email || `${username}@vben.local`;
 
   try {
     // 1. Supabase Auth로 로그인
     const { data: authData, error: authError } =
       await supabase.auth.signInWithPassword({
-        email: loginEmail,
+        email,
         password,
       });
 
@@ -50,9 +43,12 @@ async function loginWithSupabase(
     // 4. 응답 데이터 구성 (기존 mock 형식과 호환)
     const userData = {
       id: authData.user.id,
-      username:
-        profile?.username || authData.user.email?.split('@')[0] || username,
-      realName: profile?.full_name || profile?.username || username,
+      username: profile?.username || authData.user.email?.split('@')[0] || '',
+      realName:
+        profile?.full_name ||
+        profile?.username ||
+        authData.user.email?.split('@')[0] ||
+        '',
       roles: userRoles || ['user'],
       homePath: profile?.department === 'admin' ? '/workspace' : '/analytics',
       email: authData.user.email,
@@ -96,13 +92,13 @@ function loginWithMock(event: any, username: string, password: string) {
 }
 
 export default defineEventHandler(async (event) => {
-  const { password, username, email } = await readBody(event);
+  const { password, email } = await readBody(event);
 
-  if (!password || (!username && !email)) {
+  if (!password || !email) {
     setResponseStatus(event, 400);
     return useResponseError(
       'BadRequestException',
-      'Username/Email and password are required',
+      'Email and password are required',
     );
   }
 
@@ -113,18 +109,9 @@ export default defineEventHandler(async (event) => {
 
   if (useSupabase) {
     console.log('🔄 Supabase Auth 사용');
-    return await loginWithSupabase(
-      event,
-      username || email?.split('@')[0] || '',
-      password,
-      email,
-    );
+    return await loginWithSupabase(event, email, password);
   } else {
     console.log('🔄 Mock Auth 사용');
-    return loginWithMock(
-      event,
-      username || email?.split('@')[0] || '',
-      password,
-    );
+    return loginWithMock(event, email?.split('@')[0] || '', password);
   }
 });

@@ -7,16 +7,13 @@ import {
 import { forbiddenResponse } from '~/utils/response';
 
 export default defineEventHandler(async (event) => {
-  const { password, username, email } = await readBody(event);
+  const { password, email } = await readBody(event);
 
-  // username과 email 중 하나는 필수
-  const loginEmail = email || `${username}@vben.local`;
-
-  if (!password || (!username && !email)) {
+  if (!password || !email) {
     setResponseStatus(event, 400);
     return useResponseError(
       'BadRequestException',
-      'Username/Email and password are required',
+      'Email and password are required',
     );
   }
 
@@ -24,7 +21,7 @@ export default defineEventHandler(async (event) => {
     // 1. Supabase Auth로 로그인
     const { data: authData, error: authError } =
       await supabase.auth.signInWithPassword({
-        email: loginEmail,
+        email,
         password,
       });
 

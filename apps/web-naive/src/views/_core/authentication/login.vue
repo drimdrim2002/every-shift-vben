@@ -16,15 +16,15 @@ const authStore = useAuthStore();
 const MOCK_USER_OPTIONS: BasicOption[] = [
   {
     label: 'Super',
-    value: 'vben',
+    value: 'vben@vben.local',
   },
   {
     label: 'Admin',
-    value: 'admin',
+    value: 'admin@vben.local',
   },
   {
     label: 'User',
-    value: 'jack',
+    value: 'jack@vben.local',
   },
 ];
 
@@ -47,7 +47,8 @@ const formSchema = computed((): VbenFormSchema[] => {
     {
       component: 'VbenInput',
       componentProps: {
-        placeholder: $t('authentication.usernameTip'),
+        placeholder: $t('authentication.emailTip'),
+        type: 'email',
       },
       dependencies: {
         trigger(values, form) {
@@ -58,16 +59,16 @@ const formSchema = computed((): VbenFormSchema[] => {
             if (findUser) {
               form.setValues({
                 password: '123456',
-                username: findUser.value,
+                email: findUser.value,
               });
             }
           }
         },
         triggerFields: ['selectAccount'],
       },
-      fieldName: 'username',
-      label: $t('authentication.username'),
-      rules: z.string().min(1, { message: $t('authentication.usernameTip') }),
+      fieldName: 'email',
+      label: $t('authentication.email'),
+      rules: z.string().email({ message: $t('authentication.emailTip') }),
     },
     {
       component: 'VbenInputPassword',
