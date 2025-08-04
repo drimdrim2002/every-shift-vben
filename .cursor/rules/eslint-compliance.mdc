@@ -86,12 +86,12 @@ function getEnvVar(key: string): string | undefined {
   if (typeof window !== 'undefined' && import.meta !== undefined) {
     return import.meta.env?.[key];
   }
-  
+
   // Node.js environment (Nitro/Server)
   if (globalThis.process !== undefined) {
     return globalThis.process.env?.[key];
   }
-  
+
   return undefined;
 }
 ```
@@ -123,7 +123,7 @@ export function useEnvironment() {
     }
     return globalThis.process?.env?.NODE_ENV === 'production';
   });
-  
+
   return { isProduction };
 }
 ```
@@ -165,7 +165,7 @@ function goodEnvAccess() {
 function debugFunction() {
   console.log('entering function'); // ESLint error
   debugger; // ESLint error
-  
+
   if (someCondition == true) {} // ESLint error (use ===)
 }
 
