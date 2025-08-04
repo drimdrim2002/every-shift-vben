@@ -49,3 +49,7 @@ vite.config.ts.*
 *.sln
 *.sw?
 .history
+**/CLAUDE.md
+**/.env.local
+**/.env.*.local
+**/.env.*.backup

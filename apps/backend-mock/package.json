@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@faker-js/faker": "catalog:",
+    "@vben/utils": "workspace:*",
     "jsonwebtoken": "catalog:",
     "nitropack": "catalog:"
   },
