@@ -16,17 +16,19 @@ function getEnvVar(key: string): string | undefined {
       }
 
       // 환경 변수가 없으면 디버깅 정보 출력
-      console.debug(`브라우저 환경에서 ${key} 환경 변수를 찾을 수 없습니다.`);
-      console.debug('import.meta:', typeof import.meta);
-      console.debug('import.meta.env:', (import.meta as any)?.env);
+      console.warn(`브라우저 환경에서 ${key} 환경 변수를 찾을 수 없습니다.`);
+      console.warn('import.meta:', typeof import.meta);
+      console.warn('import.meta.env:', (import.meta as any)?.env);
     } catch (error) {
       console.warn(`환경 변수 로딩 오류 (${key}):`, error);
     }
   }
 
   // Node.js 환경 (Nitro)
-  if (typeof process !== 'undefined' && process.env) {
-    return process.env[key];
+  // eslint-disable-next-line n/prefer-global/process
+  if (globalThis.process !== undefined && globalThis.process.env) {
+    // eslint-disable-next-line n/prefer-global/process
+    return globalThis.process.env[key];
   }
 
   return undefined;
@@ -36,9 +38,9 @@ const supabaseUrl = getEnvVar('VITE_SUPABASE_URL');
 const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY');
 
 // 환경 변수 검증 및 디버깅
-console.debug('Supabase 환경 변수 로딩 결과:');
-console.debug('VITE_SUPABASE_URL:', supabaseUrl ? '✓ 설정됨' : '✗ 없음');
-console.debug(
+console.warn('Supabase 환경 변수 로딩 결과:');
+console.warn('VITE_SUPABASE_URL:', supabaseUrl ? '✓ 설정됨' : '✗ 없음');
+console.warn(
   'VITE_SUPABASE_ANON_KEY:',
   supabaseAnonKey ? '✓ 설정됨' : '✗ 없음',
 );

@@ -17,7 +17,7 @@ const envPath = join(process.cwd(), '.env.local');
 const envVars = {};
 
 try {
-  const envContent = readFileSync(envPath, 'utf-8');
+  const envContent = readFileSync(envPath, 'utf8');
   envContent.split('\n').forEach((line) => {
     const [key, ...valueParts] = line.split('=');
     if (key && valueParts.length > 0) {
@@ -72,7 +72,7 @@ async function testConnection() {
   console.log('📡 기본 연결 테스트');
 
   try {
-    const { data, error } = await supabase
+    const { data: _data, error } = await supabase
       .from('profiles')
       .select('id')
       .limit(1);

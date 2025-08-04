@@ -13,7 +13,7 @@ async function checkSupabaseDatabase() {
   try {
     // 1. 연결 테스트
     console.log('1️⃣ Supabase 연결 상태 확인...');
-    const { data: connectionTest, error: connectionError } = await supabase
+    const { data: _connectionTest, error: connectionError } = await supabase
       .from('information_schema.tables')
       .select('table_name')
       .eq('table_schema', 'public')

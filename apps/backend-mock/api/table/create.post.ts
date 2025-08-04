@@ -154,7 +154,7 @@ export default eventHandler(async (event) => {
 
   if (
     body.price !== undefined &&
-    (isNaN(Number(body.price)) || Number(body.price) < 0)
+    (Number.isNaN(Number(body.price)) || Number(body.price) < 0)
   ) {
     setResponseStatus(event, 400);
     return useResponseError('올바른 가격을 입력해주세요.');

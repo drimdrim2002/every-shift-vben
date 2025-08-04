@@ -57,6 +57,7 @@ async function getProductDetailWithSupabase(
 // Mock 상품 상세 조회
 function getProductDetailWithMock(productId: string) {
   // Mock에서는 faker로 임시 데이터 생성
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const { faker } = require('@faker-js/faker');
 
   const mockProduct = {

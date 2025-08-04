@@ -37,7 +37,7 @@ export function useFileUpload(options: FileUploadOptions = {}) {
     isPublic = true,
     altText = '',
     description = '',
-    tags = [],
+    tags: _tags = [],
     maxSize = 10 * 1024 * 1024, // 10MB
     allowedTypes = [
       'image/jpeg',

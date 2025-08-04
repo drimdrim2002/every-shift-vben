@@ -39,7 +39,7 @@ export function useSupabase() {
 
       // 인증 상태 변경 리스너 설정
       supabase.auth.onAuthStateChange((event, currentSession) => {
-        console.log('Supabase Auth State Changed:', event);
+        console.warn('Supabase Auth State Changed:', event);
 
         session.value = currentSession;
         user.value = currentSession?.user ?? null;

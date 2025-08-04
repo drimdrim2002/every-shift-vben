@@ -2,7 +2,7 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse, usePageResponseSuccess } from '~/utils/response';
 
 // Supabase 파일 목록 조회
-async function getFilesWithSupabase(event: any, userinfo: any) {
+async function getFilesWithSupabase(event: any, _userinfo: any) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');
@@ -30,18 +30,18 @@ async function getFilesWithSupabase(event: any, userinfo: any) {
     const bucket = (query.bucket as string) || '';
     const search = (query.search as string) || '';
     const mimeType = (query.mimeType as string) || '';
-    const isImage =
-      query.isImage === 'true'
-        ? true
-        : query.isImage === 'false'
-          ? false
-          : null;
-    const isPublic =
-      query.isPublic === 'true'
-        ? true
-        : query.isPublic === 'false'
-          ? false
-          : null;
+    let isImage: boolean | null = null;
+    if (query.isImage === 'true') {
+      isImage = true;
+    } else if (query.isImage === 'false') {
+      isImage = false;
+    }
+    let isPublic: boolean | null = null;
+    if (query.isPublic === 'true') {
+      isPublic = true;
+    } else if (query.isPublic === 'false') {
+      isPublic = false;
+    }
     const sortBy = (query.sortBy as string) || 'created_at';
     const sortOrder = (query.sortOrder as string) || 'desc';
 
@@ -87,16 +87,29 @@ async function getFilesWithSupabase(event: any, userinfo: any) {
     }
 
     // 정렬
-    const orderColumn =
-      sortBy === 'originalName'
-        ? 'original_name'
-        : sortBy === 'fileSize'
-          ? 'file_size'
-          : sortBy === 'uploadedAt'
-            ? 'uploaded_at'
-            : sortBy === 'mimeType'
-              ? 'mime_type'
-              : sortBy;
+    let orderColumn: string;
+    switch (sortBy) {
+      case 'fileSize': {
+        orderColumn = 'file_size';
+        break;
+      }
+      case 'mimeType': {
+        orderColumn = 'mime_type';
+        break;
+      }
+      case 'originalName': {
+        orderColumn = 'original_name';
+        break;
+      }
+      case 'uploadedAt': {
+        orderColumn = 'uploaded_at';
+        break;
+      }
+      default: {
+        orderColumn = sortBy;
+        break;
+      }
+    }
 
     dbQuery = dbQuery.order(orderColumn, { ascending: sortOrder === 'asc' });
 

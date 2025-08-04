@@ -285,7 +285,7 @@ export function isSupabaseEnabled(): boolean {
  */
 export async function checkSupabaseConnection(): Promise<boolean> {
   try {
-    const { data, error } = await supabase
+    const { data: _data, error } = await supabase
       .from('profiles')
       .select('id')
       .limit(1);

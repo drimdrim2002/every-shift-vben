@@ -36,7 +36,7 @@ function generateMockDataList(count: number) {
 const mockData = generateMockDataList(100);
 
 // Supabase 테이블 데이터 조회
-async function getTableDataWithSupabase(event: any, userinfo: any) {
+async function getTableDataWithSupabase(event: any, _userinfo: any) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');

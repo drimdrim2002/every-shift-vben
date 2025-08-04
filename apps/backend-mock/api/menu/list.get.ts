@@ -2,7 +2,7 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 메뉴 관리 목록 조회
-async function getMenuListWithSupabase(event: any, userinfo: any) {
+async function getMenuListWithSupabase(event: any, _userinfo: any) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');

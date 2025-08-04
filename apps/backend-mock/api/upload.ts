@@ -2,7 +2,7 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 파일 업로드
-async function uploadFileWithSupabase(event: any, userinfo: any) {
+async function uploadFileWithSupabase(event: any, _userinfo: any) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');

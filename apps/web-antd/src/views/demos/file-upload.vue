@@ -103,7 +103,7 @@ const handleUploadError = (error: Error) => {
 
 // 파일 목록 변경 처리
 const handleFilesChange = (files: UploadedFileInfo[]) => {
-  console.log('파일 목록 변경:', files);
+  console.warn('파일 목록 변경:', files);
 };
 
 // 통계 로드
