@@ -8,8 +8,8 @@ function getEnvVar(key: string): string | undefined {
   if (typeof window !== 'undefined') {
     try {
       // import.meta가 존재하고 env 속성이 있는지 확인
-      if (import.meta !== undefined && import.meta.env) {
-        const value = import.meta.env[key];
+      if (import.meta !== undefined && (import.meta as any).env) {
+        const value = (import.meta as any).env[key];
         if (value) {
           return value;
         }
