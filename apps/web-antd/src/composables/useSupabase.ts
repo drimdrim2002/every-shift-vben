@@ -1,9 +1,11 @@
-import type { AuthError, User } from '@supabase/supabase-js';
-import { ref, computed } from 'vue';
+import type { User } from '@supabase/supabase-js';
+
+import { computed, ref } from 'vue';
+
 import { supabase } from '@vben/utils';
 
 // Supabase 인증 상태 관리
-const user = ref<User | null>(null);
+const user = ref<null | User>(null);
 const session = ref<any>(null);
 const loading = ref(false);
 
@@ -26,7 +28,9 @@ export function useSupabase() {
       loading.value = true;
 
       // 현재 세션 가져오기
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      const {
+        data: { session: currentSession },
+      } = await supabase.auth.getSession();
 
       if (currentSession) {
         session.value = currentSession;
@@ -106,7 +110,10 @@ export function useSupabase() {
     if (!isSupabaseEnabled.value) return null;
 
     try {
-      const { data: { user: refreshedUser }, error } = await supabase.auth.getUser();
+      const {
+        data: { user: refreshedUser },
+        error,
+      } = await supabase.auth.getUser();
 
       if (error) throw error;
 

@@ -21,7 +21,7 @@ async function getCategoriesWithSupabase(event: any, userinfo: any) {
     // 카테고리별 집계
     const categoryMap = new Map();
 
-    categories?.forEach(item => {
+    categories?.forEach((item) => {
       const category = item.category;
       if (category) {
         categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
@@ -29,7 +29,7 @@ async function getCategoriesWithSupabase(event: any, userinfo: any) {
     });
 
     // 카테고리 목록 정렬 및 형식화
-    const formattedCategories = Array.from(categoryMap.entries())
+    const formattedCategories = [...categoryMap.entries()]
       .map(([name, count]) => ({
         name,
         count,
@@ -42,7 +42,6 @@ async function getCategoriesWithSupabase(event: any, userinfo: any) {
       total: categoryMap.size,
       message: '카테고리 목록 조회 성공',
     });
-
   } catch (error) {
     console.error('Supabase 카테고리 조회 오류:', error);
     return useResponseError('카테고리 조회 중 오류가 발생했습니다.');
@@ -77,8 +76,9 @@ export default eventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 카테고리 조회');

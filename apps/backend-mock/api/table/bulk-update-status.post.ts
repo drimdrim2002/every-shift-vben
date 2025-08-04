@@ -2,7 +2,12 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 상품 상태 일괄 업데이트
-async function bulkUpdateStatusWithSupabase(event: any, userinfo: any, productIds: string[], status: string) {
+async function bulkUpdateStatusWithSupabase(
+  event: any,
+  userinfo: any,
+  productIds: string[],
+  status: string,
+) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');
@@ -14,7 +19,10 @@ async function bulkUpdateStatusWithSupabase(event: any, userinfo: any, productId
     }
 
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return unAuthorizedResponse(event);
@@ -40,7 +48,7 @@ async function bulkUpdateStatusWithSupabase(event: any, userinfo: any, productId
     const { data: updatedProducts, error: updateError } = await supabase
       .from('products')
       .update({
-        status: status,
+        status,
         updated_by: user.id,
         updated_at: new Date().toISOString(),
       })
@@ -49,20 +57,22 @@ async function bulkUpdateStatusWithSupabase(event: any, userinfo: any, productId
 
     if (updateError) {
       console.error('상품 상태 일괄 업데이트 실패:', updateError);
-      return useResponseError('상품 상태 일괄 업데이트에 실패했습니다: ' + updateError.message);
+      return useResponseError(
+        `상품 상태 일괄 업데이트에 실패했습니다: ${updateError.message}`,
+      );
     }
 
     return useResponseSuccess({
       updatedCount: updatedProducts?.length || 0,
-      updatedProducts: updatedProducts?.map(p => ({
-        id: p.id,
-        productName: p.product_name,
-        status: p.status
-      })) || [],
+      updatedProducts:
+        updatedProducts?.map((p) => ({
+          id: p.id,
+          productName: p.product_name,
+          status: p.status,
+        })) || [],
       newStatus: status,
       message: `${updatedProducts?.length || 0}개 상품의 상태가 "${status}"로 변경되었습니다.`,
     });
-
   } catch (error) {
     console.error('Supabase 상품 상태 일괄 업데이트 오류:', error);
     return useResponseError('상품 상태 일괄 업데이트 중 오류가 발생했습니다.');
@@ -76,10 +86,10 @@ function bulkUpdateStatusWithMock(productIds: string[], status: string) {
 
   return useResponseSuccess({
     updatedCount: productIds.length,
-    updatedProducts: productIds.map(id => ({
+    updatedProducts: productIds.map((id) => ({
       id,
       productName: `Mock Product ${id}`,
-      status
+      status,
     })),
     newStatus: status,
     message: `${productIds.length}개 상품의 상태가 "${status}"로 변경되었습니다.`,
@@ -94,7 +104,7 @@ export default eventHandler(async (event) => {
 
   // 관리자 권한 확인
   const userRole = userinfo.roles?.[0] || 'user';
-  if (!['super', 'admin'].includes(userRole)) {
+  if (!['admin', 'super'].includes(userRole)) {
     setResponseStatus(event, 403);
     return useResponseError('상품 상태 변경 권한이 없습니다.');
   }
@@ -107,9 +117,11 @@ export default eventHandler(async (event) => {
     return useResponseError('업데이트할 상품 ID 목록이 필요합니다.');
   }
 
-  if (!body.status || !['success', 'error', 'warning'].includes(body.status)) {
+  if (!body.status || !['error', 'success', 'warning'].includes(body.status)) {
     setResponseStatus(event, 400);
-    return useResponseError('올바른 상태 값을 지정해주세요. (success, error, warning)');
+    return useResponseError(
+      '올바른 상태 값을 지정해주세요. (success, error, warning)',
+    );
   }
 
   const productIds = body.productIds;
@@ -126,16 +138,24 @@ export default eventHandler(async (event) => {
   // 최대 업데이트 개수 제한
   if (productIds.length > 100) {
     setResponseStatus(event, 400);
-    return useResponseError('한 번에 최대 100개 상품까지만 업데이트할 수 있습니다.');
+    return useResponseError(
+      '한 번에 최대 100개 상품까지만 업데이트할 수 있습니다.',
+    );
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 상품 상태 일괄 업데이트');
-    return await bulkUpdateStatusWithSupabase(event, userinfo, productIds, status);
+    return await bulkUpdateStatusWithSupabase(
+      event,
+      userinfo,
+      productIds,
+      status,
+    );
   } else {
     console.log('🔄 Mock 상품 상태 일괄 업데이트');
     return bulkUpdateStatusWithMock(productIds, status);

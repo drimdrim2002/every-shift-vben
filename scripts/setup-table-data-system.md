@@ -9,11 +9,13 @@ Vue Vben Admin의 테이블 데이터 시스템을 Supabase로 마이그레이�
 Supabase Dashboard의 SQL Editor에서 다음 스크립트를 실행하세요:
 
 ### 1. 상품 테이블 및 검색 시스템 생성
+
 ```sql
 -- scripts/create-table-data-schema.sql 파일의 내용 실행
 ```
 
 ### 2. 기본 상품 데이터 삽입
+
 ```sql
 -- scripts/insert-table-data.sql 파일의 내용 실행
 ```
@@ -35,11 +37,13 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 ## 🚀 3단계: 테스트
 
 ### 서버 시작
+
 ```bash
 pnpm dev:antd
 ```
 
 ### API 테스트
+
 ```bash
 # 상품 목록 조회 (로그인 후)
 curl -H "Authorization: Bearer your-token" \
@@ -63,7 +67,7 @@ curl -X POST -H "Authorization: Bearer your-token" \
 ## 📊 구현된 테이블 데이터 API
 
 | 엔드포인트 | 메서드 | 권한 | 설명 |
-|----------|--------|------|------|
+| --- | --- | --- | --- |
 | `/api/table/list` | GET | 모든 사용자 | 상품 목록 (페이징, 검색, 필터) |
 | `/api/table/:id` | GET | 모든 사용자 | 상품 상세 정보 |
 | `/api/table/categories` | GET | 모든 사용자 | 카테고리 목록 |
@@ -76,52 +80,55 @@ curl -X POST -H "Authorization: Bearer your-token" \
 ## 🎯 상품 데이터 구조
 
 ### 상품 아이템
+
 ```typescript
 interface Product {
-  id: string;                // UUID
-  productName: string;       // 상품명
-  description?: string;      // 설명
-  category: string;          // 카테고리
-  price: number;             // 가격
-  currency: string;          // 통화 (USD, KRW 등)
-  quantity: number;          // 재고 수량
-  status: 'success' | 'error' | 'warning';  // 상태
-  available: boolean;        // 판매 가능 여부
-  inProduction: boolean;     // 생산 중 여부
-  open: boolean;             // 공개 여부
-  imageUrl?: string;         // 이미지 URL
-  imageUrl2?: string;        // 두 번째 이미지 URL
-  weight?: number;           // 무게
-  color?: string;            // 색상
-  rating?: number;           // 평점 (0-5)
-  tags: string[];            // 태그 배열
-  releaseDate?: string;      // 출시일
-  createdAt: string;         // 생성일
-  updatedAt: string;         // 수정일
+  id: string; // UUID
+  productName: string; // 상품명
+  description?: string; // 설명
+  category: string; // 카테고리
+  price: number; // 가격
+  currency: string; // 통화 (USD, KRW 등)
+  quantity: number; // 재고 수량
+  status: 'success' | 'error' | 'warning'; // 상태
+  available: boolean; // 판매 가능 여부
+  inProduction: boolean; // 생산 중 여부
+  open: boolean; // 공개 여부
+  imageUrl?: string; // 이미지 URL
+  imageUrl2?: string; // 두 번째 이미지 URL
+  weight?: number; // 무게
+  color?: string; // 색상
+  rating?: number; // 평점 (0-5)
+  tags: string[]; // 태그 배열
+  releaseDate?: string; // 출시일
+  createdAt: string; // 생성일
+  updatedAt: string; // 수정일
 }
 ```
 
 ## 🔍 검색 및 필터링 기능
 
 ### 1. **고급 검색**
+
 ```typescript
 // 검색 매개변수
 {
-  search: string;          // 상품명, 설명, 카테고리 검색
-  category: string;        // 카테고리 필터
-  status: string;          // 상태 필터
-  available: boolean;      // 판매가능 필터
-  minPrice: number;        // 최소 가격
-  maxPrice: number;        // 최대 가격
-  minRating: number;       // 최소 평점
-  sortBy: string;          // 정렬 필드
+  search: string; // 상품명, 설명, 카테고리 검색
+  category: string; // 카테고리 필터
+  status: string; // 상태 필터
+  available: boolean; // 판매가능 필터
+  minPrice: number; // 최소 가격
+  maxPrice: number; // 최대 가격
+  minRating: number; // 최소 평점
+  sortBy: string; // 정렬 필드
   sortOrder: 'asc' | 'desc'; // 정렬 방향
-  page: number;            // 페이지 번호
-  pageSize: number;        // 페이지 크기
+  page: number; // 페이지 번호
+  pageSize: number; // 페이지 크기
 }
 ```
 
 ### 2. **정렬 지원 컬럼**
+
 - `productName` - 상품명
 - `price` - 가격
 - `rating` - 평점
@@ -131,6 +138,7 @@ interface Product {
 - `quantity` - 재고 수량
 
 ### 3. **상태 관리**
+
 - `success` - 정상 상품 (녹색)
 - `warning` - 주의 필요 (노란색)
 - `error` - 문제 발생 (빨간색)
@@ -138,14 +146,16 @@ interface Product {
 ## 📈 일괄 작업 기능
 
 ### 1. **일괄 삭제**
+
 ```typescript
-POST /api/table/bulk-delete
-{
-  "productIds": ["uuid1", "uuid2", "uuid3"]
-}
+POST / api / table / bulk -
+  delete {
+    productIds: ['uuid1', 'uuid2', 'uuid3'],
+  };
 ```
 
 ### 2. **상태 일괄 변경**
+
 ```typescript
 POST /api/table/bulk-update-status
 {
@@ -156,28 +166,32 @@ POST /api/table/bulk-update-status
 
 ## 🎖️ 권한 레벨별 접근
 
-| 역할 | 목록 조회 | 상세 조회 | 생성 | 수정 | 삭제 | 일괄 작업 |
-|------|-----------|-----------|------|------|------|-----------|
-| **super** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **admin** | ✅ | ✅ | ✅ | ✅ | ❌ | 상태만 |
-| **user** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| 역할      | 목록 조회 | 상세 조회 | 생성 | 수정 | 삭제 | 일괄 작업 |
+| --------- | --------- | --------- | ---- | ---- | ---- | --------- |
+| **super** | ✅        | ✅        | ✅   | ✅   | ✅   | ✅        |
+| **admin** | ✅        | ✅        | ✅   | ✅   | ❌   | 상태만    |
+| **user**  | ✅        | ✅        | ❌   | ❌   | ❌   | ❌        |
 
 ## 🔄 Dual Mode 지원
 
 시스템은 Mock 모드와 Supabase 모드를 모두 지원합니다:
 
 ### Mock 모드 (기본값)
+
 ```bash
 USE_SUPABASE=false
 ```
+
 - Faker.js로 동적 데이터 생성
 - 매번 랜덤 데이터
 - 개발 및 테스트용
 
 ### Supabase 모드
+
 ```bash
 USE_SUPABASE=true
 ```
+
 - 실제 데이터베이스
 - 영구 데이터 저장
 - 프로덕션 환경

@@ -14,7 +14,10 @@ async function getFilesWithSupabase(event: any, userinfo: any) {
     }
 
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return unAuthorizedResponse(event);
@@ -24,13 +27,23 @@ async function getFilesWithSupabase(event: any, userinfo: any) {
     const query = getQuery(event);
     const page = Number(query.page) || 1;
     const pageSize = Number(query.pageSize) || 10;
-    const bucket = query.bucket as string || '';
-    const search = query.search as string || '';
-    const mimeType = query.mimeType as string || '';
-    const isImage = query.isImage === 'true' ? true : query.isImage === 'false' ? false : null;
-    const isPublic = query.isPublic === 'true' ? true : query.isPublic === 'false' ? false : null;
-    const sortBy = query.sortBy as string || 'created_at';
-    const sortOrder = query.sortOrder as string || 'desc';
+    const bucket = (query.bucket as string) || '';
+    const search = (query.search as string) || '';
+    const mimeType = (query.mimeType as string) || '';
+    const isImage =
+      query.isImage === 'true'
+        ? true
+        : (query.isImage === 'false'
+          ? false
+          : null);
+    const isPublic =
+      query.isPublic === 'true'
+        ? true
+        : (query.isPublic === 'false'
+          ? false
+          : null);
+    const sortBy = (query.sortBy as string) || 'created_at';
+    const sortOrder = (query.sortOrder as string) || 'desc';
 
     // 관리자인지 확인
     const { data: userRoles } = await supabase
@@ -38,12 +51,12 @@ async function getFilesWithSupabase(event: any, userinfo: any) {
       .select('role')
       .eq('user_id', user.id);
 
-    const isAdmin = userRoles?.some(ur => ['super', 'admin'].includes(ur.role));
+    const isAdmin = userRoles?.some((ur) =>
+      ['admin', 'super'].includes(ur.role),
+    );
 
     // 기본 쿼리
-    let dbQuery = supabase
-      .from('file_uploads')
-      .select('*', { count: 'exact' });
+    let dbQuery = supabase.from('file_uploads').select('*', { count: 'exact' });
 
     // 권한에 따른 필터링
     if (!isAdmin) {
@@ -56,7 +69,9 @@ async function getFilesWithSupabase(event: any, userinfo: any) {
     }
 
     if (search) {
-      dbQuery = dbQuery.or(`original_name.ilike.%${search}%,description.ilike.%${search}%,alt_text.ilike.%${search}%`);
+      dbQuery = dbQuery.or(
+        `original_name.ilike.%${search}%,description.ilike.%${search}%,alt_text.ilike.%${search}%`,
+      );
     }
 
     if (mimeType) {
@@ -72,10 +87,16 @@ async function getFilesWithSupabase(event: any, userinfo: any) {
     }
 
     // 정렬
-    const orderColumn = sortBy === 'originalName' ? 'original_name' :
-                       sortBy === 'fileSize' ? 'file_size' :
-                       sortBy === 'uploadedAt' ? 'uploaded_at' :
-                       sortBy === 'mimeType' ? 'mime_type' : sortBy;
+    const orderColumn =
+      sortBy === 'originalName'
+        ? 'original_name'
+        : sortBy === 'fileSize'
+          ? 'file_size'
+          : sortBy === 'uploadedAt'
+            ? 'uploaded_at'
+            : sortBy === 'mimeType'
+              ? 'mime_type'
+              : sortBy;
 
     dbQuery = dbQuery.order(orderColumn, { ascending: sortOrder === 'asc' });
 
@@ -92,33 +113,35 @@ async function getFilesWithSupabase(event: any, userinfo: any) {
     }
 
     // 각 파일의 공개 URL 생성
-    const filesWithUrls = await Promise.all((files || []).map(async file => {
-      const { data: urlData } = supabase.storage
-        .from(file.bucket_name)
-        .getPublicUrl(file.file_name);
+    const filesWithUrls = await Promise.all(
+      (files || []).map(async (file) => {
+        const { data: urlData } = supabase.storage
+          .from(file.bucket_name)
+          .getPublicUrl(file.file_name);
 
-      return {
-        id: file.id,
-        url: urlData.publicUrl,
-        originalName: file.original_name,
-        fileName: file.file_name,
-        fileSize: file.file_size,
-        mimeType: file.mime_type,
-        bucket: file.bucket_name,
-        altText: file.alt_text,
-        description: file.description,
-        tags: file.tags || [],
-        width: file.width,
-        height: file.height,
-        isImage: file.is_image,
-        isPublic: file.is_public,
-        accessLevel: file.access_level,
-        uploadedBy: file.uploaded_by,
-        uploadedAt: file.uploaded_at,
-        createdAt: file.created_at,
-        updatedAt: file.updated_at,
-      };
-    }));
+        return {
+          id: file.id,
+          url: urlData.publicUrl,
+          originalName: file.original_name,
+          fileName: file.file_name,
+          fileSize: file.file_size,
+          mimeType: file.mime_type,
+          bucket: file.bucket_name,
+          altText: file.alt_text,
+          description: file.description,
+          tags: file.tags || [],
+          width: file.width,
+          height: file.height,
+          isImage: file.is_image,
+          isPublic: file.is_public,
+          accessLevel: file.access_level,
+          uploadedBy: file.uploaded_by,
+          uploadedAt: file.uploaded_at,
+          createdAt: file.created_at,
+          updatedAt: file.updated_at,
+        };
+      }),
+    );
 
     return usePageResponseSuccess(
       page.toString(),
@@ -132,10 +155,9 @@ async function getFilesWithSupabase(event: any, userinfo: any) {
           mimeType,
           isImage,
           isPublic,
-        }
-      }
+        },
+      },
     );
-
   } catch (error) {
     console.error('Supabase 파일 목록 조회 오류:', error);
     return useResponseError('파일 목록 조회 중 오류가 발생했습니다.');
@@ -151,7 +173,7 @@ function getFilesWithMock() {
       url: 'https://unpkg.com/@vbenjs/static-source@0.1.7/source/logo-v1.webp',
       originalName: 'logo-v1.webp',
       fileName: 'general/1734567890-abc123.webp',
-      fileSize: 12345,
+      fileSize: 12_345,
       mimeType: 'image/webp',
       bucket: 'user-uploads',
       altText: 'Logo Image',
@@ -171,7 +193,7 @@ function getFilesWithMock() {
       url: 'https://example.com/sample-document.pdf',
       originalName: 'sample-document.pdf',
       fileName: 'documents/1734567891-def456.pdf',
-      fileSize: 54321,
+      fileSize: 54_321,
       mimeType: 'application/pdf',
       bucket: 'documents',
       altText: '',
@@ -185,7 +207,7 @@ function getFilesWithMock() {
       uploadedAt: '2024-01-02T11:00:00Z',
       createdAt: '2024-01-02T11:00:00Z',
       updatedAt: '2024-01-02T11:00:00Z',
-    }
+    },
   ];
 
   console.log('Mock 파일 목록 조회');
@@ -200,8 +222,9 @@ export default eventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 파일 목록 조회');

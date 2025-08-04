@@ -2,7 +2,11 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 상품 삭제
-async function deleteProductWithSupabase(event: any, userinfo: any, productId: string) {
+async function deleteProductWithSupabase(
+  event: any,
+  userinfo: any,
+  productId: string,
+) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');
@@ -14,7 +18,10 @@ async function deleteProductWithSupabase(event: any, userinfo: any, productId: s
     }
 
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return unAuthorizedResponse(event);
@@ -40,7 +47,9 @@ async function deleteProductWithSupabase(event: any, userinfo: any, productId: s
 
     if (deleteError) {
       console.error('상품 삭제 실패:', deleteError);
-      return useResponseError('상품 삭제에 실패했습니다: ' + deleteError.message);
+      return useResponseError(
+        `상품 삭제에 실패했습니다: ${deleteError.message}`,
+      );
     }
 
     return useResponseSuccess({
@@ -48,7 +57,6 @@ async function deleteProductWithSupabase(event: any, userinfo: any, productId: s
       productName: existingProduct.product_name,
       message: '상품이 성공적으로 삭제되었습니다.',
     });
-
   } catch (error) {
     console.error('Supabase 상품 삭제 오류:', error);
     return useResponseError('상품 삭제 중 오류가 발생했습니다.');
@@ -87,8 +95,9 @@ export default eventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 상품 삭제');

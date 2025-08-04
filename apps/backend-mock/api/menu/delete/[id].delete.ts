@@ -2,7 +2,11 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 메뉴 삭제
-async function deleteMenuWithSupabase(event: any, userinfo: any, menuId: string) {
+async function deleteMenuWithSupabase(
+  event: any,
+  userinfo: any,
+  menuId: string,
+) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');
@@ -14,7 +18,10 @@ async function deleteMenuWithSupabase(event: any, userinfo: any, menuId: string)
     }
 
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return unAuthorizedResponse(event);
@@ -45,7 +52,9 @@ async function deleteMenuWithSupabase(event: any, userinfo: any, menuId: string)
 
     if (childMenus && childMenus.length > 0) {
       setResponseStatus(event, 409);
-      return useResponseError('하위 메뉴가 있는 메뉴는 삭제할 수 없습니다. 먼저 하위 메뉴를 삭제해주세요.');
+      return useResponseError(
+        '하위 메뉴가 있는 메뉴는 삭제할 수 없습니다. 먼저 하위 메뉴를 삭제해주세요.',
+      );
     }
 
     // 메뉴와 관련된 권한 데이터도 함께 삭제됨 (CASCADE)
@@ -56,7 +65,9 @@ async function deleteMenuWithSupabase(event: any, userinfo: any, menuId: string)
 
     if (deleteError) {
       console.error('메뉴 삭제 실패:', deleteError);
-      return useResponseError('메뉴 삭제에 실패했습니다: ' + deleteError.message);
+      return useResponseError(
+        `메뉴 삭제에 실패했습니다: ${deleteError.message}`,
+      );
     }
 
     return useResponseSuccess({
@@ -64,7 +75,6 @@ async function deleteMenuWithSupabase(event: any, userinfo: any, menuId: string)
       name: existingMenu.name,
       message: '메뉴가 성공적으로 삭제되었습니다.',
     });
-
   } catch (error) {
     console.error('Supabase 메뉴 삭제 오류:', error);
     return useResponseError('메뉴 삭제 중 오류가 발생했습니다.');
@@ -110,8 +120,9 @@ export default eventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 메뉴 삭제');

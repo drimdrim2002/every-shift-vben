@@ -6,7 +6,12 @@ import { generateAccessToken, generateRefreshToken } from '~/utils/jwt-utils';
 import { forbiddenResponse } from '~/utils/response';
 
 // Supabase 로그인 로직
-async function loginWithSupabase(event: any, username: string, password: string, email?: string) {
+async function loginWithSupabase(
+  event: any,
+  username: string,
+  password: string,
+  email?: string,
+) {
   // @ts-ignore - 동적 import
   const { supabase } = await import('@vben/utils');
 
@@ -14,10 +19,11 @@ async function loginWithSupabase(event: any, username: string, password: string,
 
   try {
     // 1. Supabase Auth로 로그인
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: password,
-    });
+    const { data: authData, error: authError } =
+      await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password,
+      });
 
     if (authError || !authData.user) {
       clearRefreshTokenCookie(event);
@@ -38,13 +44,14 @@ async function loginWithSupabase(event: any, username: string, password: string,
     // 3. 사용자 역할 조회
     const { data: userRoles } = await supabase
       .rpc('get_user_roles', { user_id: authData.user.id })
-      .then(result => result)
+      .then((result) => result)
       .catch(() => ({ data: ['user'] })); // 기본 역할
 
     // 4. 응답 데이터 구성 (기존 mock 형식과 호환)
     const userData = {
       id: authData.user.id,
-      username: profile?.username || authData.user.email?.split('@')[0] || username,
+      username:
+        profile?.username || authData.user.email?.split('@')[0] || username,
       realName: profile?.full_name || profile?.username || username,
       roles: userRoles || ['user'],
       homePath: profile?.department === 'admin' ? '/workspace' : '/analytics',
@@ -60,7 +67,6 @@ async function loginWithSupabase(event: any, username: string, password: string,
       ...userData,
       accessToken: authData.session?.access_token,
     });
-
   } catch (error) {
     console.error('Supabase 로그인 오류:', error);
     return forbiddenResponse(event, 'Authentication failed.');
@@ -101,14 +107,24 @@ export default defineEventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase Auth 사용');
-    return await loginWithSupabase(event, username || email?.split('@')[0] || '', password, email);
+    return await loginWithSupabase(
+      event,
+      username || email?.split('@')[0] || '',
+      password,
+      email,
+    );
   } else {
     console.log('🔄 Mock Auth 사용');
-    return loginWithMock(event, username || email?.split('@')[0] || '', password);
+    return loginWithMock(
+      event,
+      username || email?.split('@')[0] || '',
+      password,
+    );
   }
 });

@@ -2,7 +2,12 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 메뉴 수정
-async function updateMenuWithSupabase(event: any, userinfo: any, menuId: string, menuData: any) {
+async function updateMenuWithSupabase(
+  event: any,
+  userinfo: any,
+  menuId: string,
+  menuData: any,
+) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');
@@ -14,7 +19,10 @@ async function updateMenuWithSupabase(event: any, userinfo: any, menuId: string,
     }
 
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return unAuthorizedResponse(event);
@@ -41,11 +49,14 @@ async function updateMenuWithSupabase(event: any, userinfo: any, menuId: string,
     // 수정할 필드만 추가
     if (menuData.name !== undefined) updateData.name = menuData.name;
     if (menuData.path !== undefined) updateData.path = menuData.path;
-    if (menuData.component !== undefined) updateData.component = menuData.component;
+    if (menuData.component !== undefined)
+      updateData.component = menuData.component;
     if (menuData.type !== undefined) updateData.type = menuData.type;
     if (menuData.status !== undefined) updateData.status = menuData.status;
-    if (menuData.authCode !== undefined) updateData.auth_code = menuData.authCode;
-    if (menuData.sortOrder !== undefined) updateData.sort_order = menuData.sortOrder;
+    if (menuData.authCode !== undefined)
+      updateData.auth_code = menuData.authCode;
+    if (menuData.sortOrder !== undefined)
+      updateData.sort_order = menuData.sortOrder;
     if (menuData.meta !== undefined) updateData.meta = menuData.meta;
     if (menuData.pid !== undefined) updateData.pid = menuData.pid;
 
@@ -58,7 +69,9 @@ async function updateMenuWithSupabase(event: any, userinfo: any, menuId: string,
 
     if (updateError) {
       console.error('메뉴 수정 실패:', updateError);
-      return useResponseError('메뉴 수정에 실패했습니다: ' + updateError.message);
+      return useResponseError(
+        `메뉴 수정에 실패했습니다: ${updateError.message}`,
+      );
     }
 
     return useResponseSuccess({
@@ -75,7 +88,6 @@ async function updateMenuWithSupabase(event: any, userinfo: any, menuId: string,
       createdAt: updatedMenu.created_at,
       updatedAt: updatedMenu.updated_at,
     });
-
   } catch (error) {
     console.error('Supabase 메뉴 수정 오류:', error);
     return useResponseError('메뉴 수정 중 오류가 발생했습니다.');
@@ -104,7 +116,7 @@ export default eventHandler(async (event) => {
 
   // 관리자 권한 확인
   const userRole = userinfo.roles?.[0] || 'user';
-  if (!['super', 'admin'].includes(userRole)) {
+  if (!['admin', 'super'].includes(userRole)) {
     setResponseStatus(event, 403);
     return useResponseError('메뉴 수정 권한이 없습니다.');
   }
@@ -124,14 +136,18 @@ export default eventHandler(async (event) => {
     return useResponseError('메뉴 이름은 비어있을 수 없습니다.');
   }
 
-  if (body.type && !['menu', 'catalog', 'button', 'embedded', 'link'].includes(body.type)) {
+  if (
+    body.type &&
+    !['button', 'catalog', 'embedded', 'link', 'menu'].includes(body.type)
+  ) {
     setResponseStatus(event, 400);
     return useResponseError('올바른 메뉴 타입을 지정해주세요.');
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 메뉴 수정');

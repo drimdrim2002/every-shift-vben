@@ -19,7 +19,6 @@ async function logoutWithSupabase(event: any) {
 
     clearRefreshTokenCookie(event);
     return useResponseSuccess('Logout successful');
-
   } catch (error) {
     console.error('Supabase 로그아웃 오류:', error);
     // 오류가 있어도 로컬 쿠키는 정리
@@ -41,8 +40,9 @@ export default defineEventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 로그아웃');

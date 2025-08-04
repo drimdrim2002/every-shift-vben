@@ -7,17 +7,18 @@
  * node scripts/test-supabase-integration.js
  */
 
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { createClient } from '@supabase/supabase-js';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 
 // 환경 변수 로드
 const envPath = join(process.cwd(), '.env.local');
-let envVars = {};
+const envVars = {};
 
 try {
   const envContent = readFileSync(envPath, 'utf-8');
-  envContent.split('\n').forEach(line => {
+  envContent.split('\n').forEach((line) => {
     const [key, ...valueParts] = line.split('=');
     if (key && valueParts.length > 0) {
       const value = valueParts.join('=').split('#')[0].trim();
@@ -49,13 +50,13 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const testResults = {
   passed: 0,
   failed: 0,
-  tests: []
+  tests: [],
 };
 
 // 테스트 헬퍼 함수
 function logTest(name, success, message = '') {
   const status = success ? '✅' : '❌';
-  const fullMessage = `${status} ${name}${message ? ': ' + message : ''}`;
+  const fullMessage = `${status} ${name}${message ? `: ${message}` : ''}`;
   console.log(fullMessage);
 
   testResults.tests.push({ name, success, message });
@@ -76,7 +77,8 @@ async function testConnection() {
       .select('id')
       .limit(1);
 
-    if (error && error.code !== 'PGRST116') { // PGRST116은 데이터가 없음을 의미
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116은 데이터가 없음을 의미
       throw error;
     }
 
@@ -99,17 +101,14 @@ async function testDatabaseSchema() {
     'role_permissions',
     'menus',
     'products',
-    'file_uploads'
+    'file_uploads',
   ];
 
   let allTablesExist = true;
 
   for (const table of requiredTables) {
     try {
-      const { error } = await supabase
-        .from(table)
-        .select('*')
-        .limit(1);
+      const { error } = await supabase.from(table).select('*').limit(1);
 
       if (error && error.code !== 'PGRST116') {
         throw error;
@@ -135,7 +134,7 @@ async function testRPCFunctions() {
     'user_has_role',
     'get_user_permissions',
     'get_menu_tree',
-    'search_products'
+    'search_products',
   ];
 
   let allRPCWork = true;
@@ -146,19 +145,44 @@ async function testRPCFunctions() {
       const testId = '00000000-0000-0000-0000-000000000000';
 
       let result;
-      if (func === 'get_user_roles' || func === 'get_user_permissions' || func === 'get_menu_tree') {
-        result = await supabase.rpc(func, { target_user_id: testId });
-      } else if (func === 'user_has_permission') {
-        result = await supabase.rpc(func, { target_user_id: testId, permission_name: 'test' });
-      } else if (func === 'user_has_role') {
-        result = await supabase.rpc(func, { target_user_id: testId, role_name: 'test' });
-      } else if (func === 'search_products') {
-        result = await supabase.rpc(func, { page_size: 1, page_number: 1 });
+      switch (func) {
+        case 'get_menu_tree':
+        case 'get_user_permissions':
+        case 'get_user_roles': {
+          result = await supabase.rpc(func, { target_user_id: testId });
+
+          break;
+        }
+        case 'search_products': {
+          result = await supabase.rpc(func, { page_size: 1, page_number: 1 });
+
+          break;
+        }
+        case 'user_has_permission': {
+          result = await supabase.rpc(func, {
+            target_user_id: testId,
+            permission_name: 'test',
+          });
+
+          break;
+        }
+        case 'user_has_role': {
+          result = await supabase.rpc(func, {
+            target_user_id: testId,
+            role_name: 'test',
+          });
+
+          break;
+        }
+        // No default
       }
 
       if (result.error) {
         // 일부 오류는 예상됨 (데이터가 없거나 권한 없음)
-        if (result.error.code === 'PGRST116' || result.error.message.includes('permission')) {
+        if (
+          result.error.code === 'PGRST116' ||
+          result.error.message.includes('permission')
+        ) {
           logTest(`RPC ${func}`, true, '함수 존재 (예상된 결과)');
         } else {
           throw result.error;
@@ -183,7 +207,7 @@ async function testStorageBuckets() {
     'user-uploads',
     'avatars',
     'product-images',
-    'documents'
+    'documents',
   ];
 
   let allBucketsExist = true;
@@ -195,16 +219,15 @@ async function testStorageBuckets() {
       throw error;
     }
 
-    const bucketNames = buckets.map(b => b.name);
+    const bucketNames = new Set(buckets.map((b) => b.name));
 
     for (const bucket of requiredBuckets) {
-      const exists = bucketNames.includes(bucket);
+      const exists = bucketNames.has(bucket);
       logTest(`버킷 ${bucket}`, exists, exists ? '존재함' : '없음');
       if (!exists) allBucketsExist = false;
     }
 
     logTest('Storage 버킷 목록 조회', true, `${buckets.length}개 버킷 발견`);
-
   } catch (error) {
     logTest('Storage 버킷 테스트', false, error.message);
     allBucketsExist = false;
@@ -219,7 +242,10 @@ async function testAuthSystem() {
 
   try {
     // 현재 세션 확인
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
     if (sessionError) {
       throw sessionError;
@@ -229,7 +255,10 @@ async function testAuthSystem() {
 
     // 사용자 정보 확인 (로그인되어 있다면)
     if (session) {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
       if (userError) {
         throw userError;
@@ -266,16 +295,16 @@ async function testPerformance() {
   const tests = [
     {
       name: '프로필 조회',
-      query: () => supabase.from('profiles').select('*').limit(10)
+      query: () => supabase.from('profiles').select('*').limit(10),
     },
     {
       name: '메뉴 조회',
-      query: () => supabase.from('menus').select('*').limit(10)
+      query: () => supabase.from('menus').select('*').limit(10),
     },
     {
       name: '파일 목록 조회',
-      query: () => supabase.from('file_uploads').select('*').limit(10)
-    }
+      query: () => supabase.from('file_uploads').select('*').limit(10),
+    },
   ];
 
   for (const test of tests) {
@@ -290,7 +319,11 @@ async function testPerformance() {
       }
 
       const isGood = duration < 1000; // 1초 이내
-      logTest(test.name, isGood, `${duration}ms ${isGood ? '(양호)' : '(느림)'}`);
+      logTest(
+        test.name,
+        isGood,
+        `${duration}ms ${isGood ? '(양호)' : '(느림)'}`,
+      );
     } catch (error) {
       logTest(test.name, false, `오류: ${error.message}`);
     }
@@ -300,8 +333,8 @@ async function testPerformance() {
 // 메인 테스트 실행
 async function runTests() {
   console.log(`🔗 Supabase URL: ${SUPABASE_URL}`);
-  console.log(`🔑 Anon Key: ${SUPABASE_ANON_KEY.substring(0, 20)}...`);
-  console.log('=' .repeat(60));
+  console.log(`🔑 Anon Key: ${SUPABASE_ANON_KEY.slice(0, 20)}...`);
+  console.log('='.repeat(60));
 
   const testFunctions = [
     testConnection,
@@ -309,27 +342,29 @@ async function runTests() {
     testRPCFunctions,
     testStorageBuckets,
     testAuthSystem,
-    testPerformance
+    testPerformance,
   ];
 
   for (const testFunc of testFunctions) {
     await testFunc();
-    await new Promise(resolve => setTimeout(resolve, 500)); // 0.5초 대기
+    await new Promise((resolve) => setTimeout(resolve, 500)); // 0.5초 대기
   }
 
   // 결과 요약
-  console.log('\n' + '=' .repeat(60));
+  console.log(`\n${'='.repeat(60)}`);
   console.log('📊 테스트 결과 요약');
-  console.log('=' .repeat(60));
+  console.log('='.repeat(60));
   console.log(`✅ 성공: ${testResults.passed}개`);
   console.log(`❌ 실패: ${testResults.failed}개`);
-  console.log(`📈 성공률: ${Math.round((testResults.passed / (testResults.passed + testResults.failed)) * 100)}%`);
+  console.log(
+    `📈 성공률: ${Math.round((testResults.passed / (testResults.passed + testResults.failed)) * 100)}%`,
+  );
 
   if (testResults.failed > 0) {
     console.log('\n❌ 실패한 테스트:');
     testResults.tests
-      .filter(t => !t.success)
-      .forEach(t => console.log(`   - ${t.name}: ${t.message}`));
+      .filter((t) => !t.success)
+      .forEach((t) => console.log(`   - ${t.name}: ${t.message}`));
   }
 
   console.log('\n🎉 테스트 완료!');
@@ -339,7 +374,7 @@ async function runTests() {
 }
 
 // 스크립트 실행
-runTests().catch(error => {
+runTests().catch((error) => {
   console.error('❌ 테스트 실행 중 오류:', error);
   process.exit(1);
 });

@@ -1,4 +1,5 @@
 import type { AuthError, Session, User } from '@supabase/supabase-js';
+
 import { supabase } from './client';
 
 export interface LoginCredentials {
@@ -8,15 +9,18 @@ export interface LoginCredentials {
 }
 
 export interface AuthResponse {
-  user: User | null;
-  session: Session | null;
+  user: null | User;
+  session: null | Session;
   error: AuthError | null;
 }
 
 /**
  * 이메일/패스워드로 로그인
  */
-export async function signInWithEmail(email: string, password: string): Promise<AuthResponse> {
+export async function signInWithEmail(
+  email: string,
+  password: string,
+): Promise<AuthResponse> {
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -40,7 +44,11 @@ export async function signInWithEmail(email: string, password: string): Promise<
 /**
  * 사용자 등록
  */
-export async function signUp(email: string, password: string, metadata?: Record<string, any>): Promise<AuthResponse> {
+export async function signUp(
+  email: string,
+  password: string,
+  metadata?: Record<string, any>,
+): Promise<AuthResponse> {
   try {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -79,9 +87,11 @@ export async function signOut(): Promise<{ error: AuthError | null }> {
 /**
  * 현재 사용자 정보 가져오기
  */
-export async function getCurrentUser(): Promise<User | null> {
+export async function getCurrentUser(): Promise<null | User> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     return user;
   } catch (error) {
     console.error('사용자 정보 가져오기 실패:', error);
@@ -92,9 +102,11 @@ export async function getCurrentUser(): Promise<User | null> {
 /**
  * 현재 세션 가져오기
  */
-export async function getCurrentSession(): Promise<Session | null> {
+export async function getCurrentSession(): Promise<null | Session> {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     return session;
   } catch (error) {
     console.error('세션 정보 가져오기 실패:', error);
@@ -126,6 +138,8 @@ export async function refreshSession(): Promise<AuthResponse> {
 /**
  * 인증 상태 변화 구독
  */
-export function onAuthStateChange(callback: (event: string, session: Session | null) => void) {
+export function onAuthStateChange(
+  callback: (event: string, session: null | Session) => void,
+) {
   return supabase.auth.onAuthStateChange(callback);
 }

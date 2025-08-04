@@ -29,6 +29,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 ## Running the app
 
 ### Mock 모드 (기본)
+
 ```bash
 # development
 $ pnpm run start
@@ -38,6 +39,7 @@ $ pnpm run build
 ```
 
 ### Supabase 모드
+
 ```bash
 # 환경 변수 설정 후
 $ USE_SUPABASE=true pnpm run start
@@ -49,14 +51,17 @@ $ pnpm run start
 ## API Endpoints
 
 ### 인증 (Authentication)
+
 - `POST /api/auth/login` - 로그인 (username/email + password)
 - `POST /api/auth/logout` - 로그아웃
 - `POST /api/auth/refresh` - 토큰 갱신
 
 ### 사용자 (User)
+
 - `GET /api/user/info` - 현재 사용자 정보
 
 ### 메뉴 관리 (Menu Management)
+
 - `GET /api/menu/all` - 사용자별 메뉴 트리 조회
 - `GET /api/menu/list` - 메뉴 관리 목록 조회 (페이징, 검색, 필터)
 - `GET /api/menu/:id` - 메뉴 상세 정보 조회
@@ -67,6 +72,7 @@ $ pnpm run start
 - `PATCH /api/menu/toggle-status/:id` - 메뉴 활성화/비활성화 (admin+ 권한 필요)
 
 ### 테이블 데이터 관리 (Table Data Management)
+
 - `GET /api/table/list` - 상품 목록 조회 (페이징, 검색, 필터, 정렬)
 - `GET /api/table/:id` - 상품 상세 정보 조회
 - `POST /api/table/create` - 새 상품 생성 (admin+ 권한 필요)
@@ -77,6 +83,7 @@ $ pnpm run start
 - `GET /api/table/categories` - 카테고리 목록 조회
 
 ### 파일 관리 (File Management)
+
 - `POST /api/upload` - 파일 업로드 (multipart/form-data, 10MB 제한)
 - `GET /api/files/list` - 파일 목록 조회 (페이징, 검색, 필터)
 - `GET /api/files/:id` - 파일 상세 정보 조회
@@ -86,6 +93,7 @@ $ pnpm run start
 - `GET /api/files/stats` - 파일 통계 조회
 
 ### 기타
+
 - `GET /api/status?status=400` - 상태 코드 테스트
 
 ## Usage Notes

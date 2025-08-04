@@ -49,19 +49,19 @@ VITE_NITRO_MOCK=false
 import { useSupabase } from '#/composables';
 
 const {
-  user,                    // 현재 사용자
-  session,                 // 현재 세션
-  isAuthenticated,         // 인증 상태
-  isLoading,              // 로딩 상태
-  isSupabaseEnabled,      // Supabase 활성화 여부
-  
-  initializeAuth,         // 인증 초기화
-  signInWithPassword,     // 이메일/비밀번호 로그인
-  signOut,                // 로그아웃
-  refreshUser,            // 사용자 정보 새로고침
-  refreshToken,           // 토큰 새로고침
-  getAccessToken,         // 액세스 토큰 가져오기
-  getRefreshToken,        // 리프레시 토큰 가져오기
+  user, // 현재 사용자
+  session, // 현재 세션
+  isAuthenticated, // 인증 상태
+  isLoading, // 로딩 상태
+  isSupabaseEnabled, // Supabase 활성화 여부
+
+  initializeAuth, // 인증 초기화
+  signInWithPassword, // 이메일/비밀번호 로그인
+  signOut, // 로그아웃
+  refreshUser, // 사용자 정보 새로고침
+  refreshToken, // 토큰 새로고침
+  getAccessToken, // 액세스 토큰 가져오기
+  getRefreshToken, // 리프레시 토큰 가져오기
 } = useSupabase();
 ```
 
@@ -96,19 +96,19 @@ const handleLogout = async () => {
 import { useFileUpload } from '#/composables';
 
 const {
-  uploading,              // 업로드 진행 중 여부
-  uploadProgress,         // 업로드 진행률 (0-100)
-  uploadedFiles,          // 업로드된 파일 목록
-  isSupabaseEnabled,      // Supabase 활성화 여부
-  
-  validateFile,           // 파일 유효성 검사
-  uploadSingleFile,       // 단일 파일 업로드
-  uploadMultipleFiles,    // 다중 파일 업로드
-  customUpload,           // Ant Design Upload용 커스텀 업로드
-  convertToAntdFileList,  // Ant Design 파일 리스트 변환
-  removeUploadedFile,     // 업로드된 파일 제거
-  clearUploadedFiles,     // 모든 업로드된 파일 제거
-  uploadToSupabaseStorage,// 직접 Supabase Storage 업로드
+  uploading, // 업로드 진행 중 여부
+  uploadProgress, // 업로드 진행률 (0-100)
+  uploadedFiles, // 업로드된 파일 목록
+  isSupabaseEnabled, // Supabase 활성화 여부
+
+  validateFile, // 파일 유효성 검사
+  uploadSingleFile, // 단일 파일 업로드
+  uploadMultipleFiles, // 다중 파일 업로드
+  customUpload, // Ant Design Upload용 커스텀 업로드
+  convertToAntdFileList, // Ant Design 파일 리스트 변환
+  removeUploadedFile, // 업로드된 파일 제거
+  clearUploadedFiles, // 모든 업로드된 파일 제거
+  uploadToSupabaseStorage, // 직접 Supabase Storage 업로드
 } = useFileUpload(options);
 ```
 
@@ -126,7 +126,8 @@ const uploadOptions = {
   maxSize: 5 * 1024 * 1024, // 5MB
 };
 
-const { uploadSingleFile, uploading, uploadProgress } = useFileUpload(uploadOptions);
+const { uploadSingleFile, uploading, uploadProgress } =
+  useFileUpload(uploadOptions);
 
 // 파일 업로드
 const handleUpload = async (file: File) => {
@@ -145,25 +146,25 @@ const handleUpload = async (file: File) => {
 import { useFileManager } from '#/composables';
 
 const {
-  files,                  // 파일 목록
-  total,                  // 전체 파일 수
-  stats,                  // 파일 통계
-  searchParams,           // 검색 매개변수
-  hasFiles,              // 파일 존재 여부
-  totalPages,            // 전체 페이지 수
-  isLoading,             // 로딩 상태
-  
-  fetchFiles,            // 파일 목록 조회
-  fetchFileDetail,       // 파일 상세 조회
-  updateFile,            // 파일 정보 수정
-  deleteFile,            // 파일 삭제
-  bulkDeleteFiles,       // 파일 일괄 삭제
-  fetchFileStats,        // 파일 통계 조회
-  updateSearchParams,    // 검색 매개변수 업데이트
-  resetSearchParams,     // 검색 매개변수 초기화
-  
-  formatFileSize,        // 파일 크기 포맷팅
-  getFileTypeIcon,       // 파일 타입 아이콘
+  files, // 파일 목록
+  total, // 전체 파일 수
+  stats, // 파일 통계
+  searchParams, // 검색 매개변수
+  hasFiles, // 파일 존재 여부
+  totalPages, // 전체 페이지 수
+  isLoading, // 로딩 상태
+
+  fetchFiles, // 파일 목록 조회
+  fetchFileDetail, // 파일 상세 조회
+  updateFile, // 파일 정보 수정
+  deleteFile, // 파일 삭제
+  bulkDeleteFiles, // 파일 일괄 삭제
+  fetchFileStats, // 파일 통계 조회
+  updateSearchParams, // 검색 매개변수 업데이트
+  resetSearchParams, // 검색 매개변수 초기화
+
+  formatFileSize, // 파일 크기 포맷팅
+  getFileTypeIcon, // 파일 타입 아이콘
 } = useFileManager();
 ```
 
@@ -285,7 +286,7 @@ const userInfo = await supabaseGetUserInfoApi();
 const uploadResult = await supabaseUploadFileApi(
   file,
   'user-uploads',
-  'custom/path.jpg'
+  'custom/path.jpg',
 );
 ```
 
@@ -345,7 +346,7 @@ const stats = await getFileStatsApi();
 
 ```typescript
 // .env.local
-VITE_USE_SUPABASE=true
+VITE_USE_SUPABASE = true;
 
 // 컴포넌트에서
 import { useSupabase, useFileUpload } from '#/composables';
@@ -363,7 +364,7 @@ const uploadResult = await uploadSingleFile(file);
 
 ```typescript
 // .env.local
-VITE_USE_SUPABASE=false  // Backend Mock에서 Supabase 모드 사용
+VITE_USE_SUPABASE = false; // Backend Mock에서 Supabase 모드 사용
 
 // 컴포넌트에서
 import { loginApi } from '#/api/core';
@@ -400,7 +401,7 @@ const uploadResult = await supabaseUploadFileApi(file, 'user-uploads');
 <template>
   <div class="upload-page">
     <h1>파일 업로드</h1>
-    
+
     <!-- 기본 업로드 -->
     <FileUploadBasic
       bucket="user-uploads"
@@ -408,7 +409,7 @@ const uploadResult = await supabaseUploadFileApi(file, 'user-uploads');
       :multiple="true"
       @success="handleSuccess"
     />
-    
+
     <!-- 업로드된 파일 관리 -->
     <div v-if="uploadedFiles.length > 0" class="mt-8">
       <h2>업로드된 파일</h2>
@@ -438,7 +439,7 @@ const handleSuccess = (file: UploadedFileInfo) => {
     <div v-if="!isAuthenticated">
       <a-button @click="handleLogin">로그인</a-button>
     </div>
-    
+
     <div v-else>
       <p>환영합니다, {{ user?.email }}</p>
       <FileUploadBasic bucket="user-uploads" />
@@ -467,10 +468,7 @@ const handleLogout = async () => {
 ```vue
 <template>
   <div>
-    <a-upload
-      :custom-request="customUpload"
-      :before-upload="beforeUpload"
-    >
+    <a-upload :custom-request="customUpload" :before-upload="beforeUpload">
       <a-button>커스텀 업로드</a-button>
     </a-upload>
   </div>

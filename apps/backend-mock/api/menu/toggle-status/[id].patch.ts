@@ -2,7 +2,11 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 메뉴 상태 토글
-async function toggleMenuStatusWithSupabase(event: any, userinfo: any, menuId: string) {
+async function toggleMenuStatusWithSupabase(
+  event: any,
+  userinfo: any,
+  menuId: string,
+) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');
@@ -14,7 +18,10 @@ async function toggleMenuStatusWithSupabase(event: any, userinfo: any, menuId: s
     }
 
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return unAuthorizedResponse(event);
@@ -49,7 +56,9 @@ async function toggleMenuStatusWithSupabase(event: any, userinfo: any, menuId: s
 
     if (updateError) {
       console.error('메뉴 상태 변경 실패:', updateError);
-      return useResponseError('메뉴 상태 변경에 실패했습니다: ' + updateError.message);
+      return useResponseError(
+        `메뉴 상태 변경에 실패했습니다: ${updateError.message}`,
+      );
     }
 
     return useResponseSuccess({
@@ -60,7 +69,6 @@ async function toggleMenuStatusWithSupabase(event: any, userinfo: any, menuId: s
       updatedAt: updatedMenu.updated_at,
       message: `메뉴가 ${updatedMenu.status === 1 ? '활성화' : '비활성화'}되었습니다.`,
     });
-
   } catch (error) {
     console.error('Supabase 메뉴 상태 토글 오류:', error);
     return useResponseError('메뉴 상태 변경 중 오류가 발생했습니다.');
@@ -70,7 +78,7 @@ async function toggleMenuStatusWithSupabase(event: any, userinfo: any, menuId: s
 // Mock 메뉴 상태 토글
 function toggleMenuStatusWithMock(menuId: string) {
   // Mock 데이터에서 해당 메뉴 찾기
-  const menu = MOCK_MENU_LIST.find(item => item.id === Number(menuId));
+  const menu = MOCK_MENU_LIST.find((item) => item.id === Number(menuId));
 
   if (!menu) {
     setResponseStatus(event, 404);
@@ -80,7 +88,11 @@ function toggleMenuStatusWithMock(menuId: string) {
   // 상태 토글
   const newStatus = menu.status === 1 ? 0 : 1;
 
-  console.log('Mock 메뉴 상태 토글:', { menuId, oldStatus: menu.status, newStatus });
+  console.log('Mock 메뉴 상태 토글:', {
+    menuId,
+    oldStatus: menu.status,
+    newStatus,
+  });
 
   return useResponseSuccess({
     id: menu.id,
@@ -100,7 +112,7 @@ export default eventHandler(async (event) => {
 
   // 관리자 권한 확인
   const userRole = userinfo.roles?.[0] || 'user';
-  if (!['super', 'admin'].includes(userRole)) {
+  if (!['admin', 'super'].includes(userRole)) {
     setResponseStatus(event, 403);
     return useResponseError('메뉴 상태 변경 권한이 없습니다.');
   }
@@ -120,8 +132,9 @@ export default eventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 메뉴 상태 토글');

@@ -2,7 +2,11 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 메뉴 생성
-async function createMenuWithSupabase(event: any, userinfo: any, menuData: any) {
+async function createMenuWithSupabase(
+  event: any,
+  userinfo: any,
+  menuData: any,
+) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');
@@ -14,7 +18,10 @@ async function createMenuWithSupabase(event: any, userinfo: any, menuData: any) 
     }
 
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return unAuthorizedResponse(event);
@@ -42,7 +49,9 @@ async function createMenuWithSupabase(event: any, userinfo: any, menuData: any) 
 
     if (insertError) {
       console.error('메뉴 생성 실패:', insertError);
-      return useResponseError('메뉴 생성에 실패했습니다: ' + insertError.message);
+      return useResponseError(
+        `메뉴 생성에 실패했습니다: ${insertError.message}`,
+      );
     }
 
     return useResponseSuccess({
@@ -59,7 +68,6 @@ async function createMenuWithSupabase(event: any, userinfo: any, menuData: any) 
       createdAt: newMenu.created_at,
       updatedAt: newMenu.updated_at,
     });
-
   } catch (error) {
     console.error('Supabase 메뉴 생성 오류:', error);
     return useResponseError('메뉴 생성 중 오류가 발생했습니다.');
@@ -111,14 +119,18 @@ export default eventHandler(async (event) => {
     return useResponseError('메뉴 이름은 필수입니다.');
   }
 
-  if (!body.type || !['menu', 'catalog', 'button', 'embedded', 'link'].includes(body.type)) {
+  if (
+    !body.type ||
+    !['button', 'catalog', 'embedded', 'link', 'menu'].includes(body.type)
+  ) {
     setResponseStatus(event, 400);
     return useResponseError('올바른 메뉴 타입을 지정해주세요.');
   }
 
   // ID 중복 확인 (Supabase에서만)
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase && body.id) {
     try {
@@ -135,7 +147,7 @@ export default eventHandler(async (event) => {
         setResponseStatus(event, 409);
         return useResponseError('동일한 ID의 메뉴가 이미 존재합니다.');
       }
-    } catch (error) {
+    } catch {
       // 조회 오류는 무시 (메뉴가 없다는 의미)
     }
   }

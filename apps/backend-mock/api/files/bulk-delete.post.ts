@@ -2,7 +2,11 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 파일 일괄 삭제
-async function bulkDeleteFilesWithSupabase(event: any, userinfo: any, fileIds: string[]) {
+async function bulkDeleteFilesWithSupabase(
+  event: any,
+  userinfo: any,
+  fileIds: string[],
+) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');
@@ -14,7 +18,10 @@ async function bulkDeleteFilesWithSupabase(event: any, userinfo: any, fileIds: s
     }
 
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return unAuthorizedResponse(event);
@@ -26,13 +33,12 @@ async function bulkDeleteFilesWithSupabase(event: any, userinfo: any, fileIds: s
       .select('role')
       .eq('user_id', user.id);
 
-    const isAdmin = userRoles?.some(ur => ['super', 'admin'].includes(ur.role));
+    const isAdmin = userRoles?.some((ur) =>
+      ['admin', 'super'].includes(ur.role),
+    );
 
     // 삭제할 파일들 조회
-    let fileQuery = supabase
-      .from('file_uploads')
-      .select('*')
-      .in('id', fileIds);
+    let fileQuery = supabase.from('file_uploads').select('*').in('id', fileIds);
 
     // 관리자가 아니면 자신의 파일만 조회
     if (!isAdmin) {
@@ -63,7 +69,10 @@ async function bulkDeleteFilesWithSupabase(event: any, userinfo: any, fileIds: s
           .remove([file.file_name]);
 
         if (storageDeleteError) {
-          console.error(`Storage 파일 삭제 실패 (${file.id}):`, storageDeleteError);
+          console.error(
+            `Storage 파일 삭제 실패 (${file.id}):`,
+            storageDeleteError,
+          );
           failedDeletions.push({
             id: file.id,
             originalName: file.original_name,
@@ -110,7 +119,6 @@ async function bulkDeleteFilesWithSupabase(event: any, userinfo: any, fileIds: s
       failedDeletions,
       message: `${successfulDeletions.length}개 파일이 성공적으로 삭제되었습니다.${failedDeletions.length > 0 ? ` ${failedDeletions.length}개 파일 삭제에 실패했습니다.` : ''}`,
     });
-
   } catch (error) {
     console.error('Supabase 파일 일괄 삭제 오류:', error);
     return useResponseError('파일 일괄 삭제 중 오류가 발생했습니다.');
@@ -120,7 +128,7 @@ async function bulkDeleteFilesWithSupabase(event: any, userinfo: any, fileIds: s
 // Mock 파일 일괄 삭제
 function bulkDeleteFilesWithMock(fileIds: string[]) {
   // Mock에서는 모든 삭제가 성공한다고 가정
-  const successfulDeletions = fileIds.map(id => ({
+  const successfulDeletions = fileIds.map((id) => ({
     id,
     originalName: `mock-file-${id}.jpg`,
   }));
@@ -169,8 +177,9 @@ export default eventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 파일 일괄 삭제');

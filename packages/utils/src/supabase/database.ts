@@ -1,9 +1,10 @@
-import type { PostgrestError, PostgrestResponse } from '@supabase/supabase-js';
+import type { PostgrestError } from '@supabase/supabase-js';
+
 import { supabase } from './client';
 
 export interface DatabaseResponse<T> {
-  data: T | null;
-  error: PostgrestError | null;
+  data: null | T;
+  error: null | PostgrestError;
   count?: number;
 }
 
@@ -23,14 +24,16 @@ export interface SortOptions {
 export async function fetchWithPagination<T>(
   tableName: string,
   options: {
-    pagination?: PaginationOptions;
-    sort?: SortOptions;
     filters?: Record<string, any>;
+    pagination?: PaginationOptions;
     select?: string;
-  } = {}
+    sort?: SortOptions;
+  } = {},
 ): Promise<DatabaseResponse<T[]>> {
   try {
-    let query = supabase.from(tableName).select(options.select || '*', { count: 'exact' });
+    let query = supabase
+      .from(tableName)
+      .select(options.select || '*', { count: 'exact' });
 
     // 필터 적용
     if (options.filters) {
@@ -43,7 +46,9 @@ export async function fetchWithPagination<T>(
 
     // 정렬 적용
     if (options.sort) {
-      query = query.order(options.sort.column, { ascending: options.sort.ascending ?? true });
+      query = query.order(options.sort.column, {
+        ascending: options.sort.ascending ?? true,
+      });
     }
 
     // 페이지네이션 적용
@@ -74,8 +79,8 @@ export async function fetchWithPagination<T>(
  */
 export async function fetchById<T>(
   tableName: string,
-  id: string | number,
-  select?: string
+  id: number | string,
+  select?: string,
 ): Promise<DatabaseResponse<T>> {
   try {
     const { data, error } = await supabase
@@ -101,7 +106,7 @@ export async function fetchById<T>(
  */
 export async function insertRecord<T>(
   tableName: string,
-  data: Partial<T>
+  data: Partial<T>,
 ): Promise<DatabaseResponse<T>> {
   try {
     const { data: insertedData, error } = await supabase
@@ -127,8 +132,8 @@ export async function insertRecord<T>(
  */
 export async function updateRecord<T>(
   tableName: string,
-  id: string | number,
-  data: Partial<T>
+  id: number | string,
+  data: Partial<T>,
 ): Promise<DatabaseResponse<T>> {
   try {
     const { data: updatedData, error } = await supabase
@@ -155,13 +160,10 @@ export async function updateRecord<T>(
  */
 export async function deleteRecord(
   tableName: string,
-  id: string | number
-): Promise<{ error: PostgrestError | null }> {
+  id: number | string,
+): Promise<{ error: null | PostgrestError }> {
   try {
-    const { error } = await supabase
-      .from(tableName)
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from(tableName).delete().eq('id', id);
 
     return { error };
   } catch (error) {
@@ -175,7 +177,7 @@ export async function deleteRecord(
 export function subscribeToTable(
   tableName: string,
   callback: (payload: any) => void,
-  filter?: string
+  filter?: string,
 ) {
   const channel = supabase
     .channel(`${tableName}_changes`)
@@ -185,9 +187,9 @@ export function subscribeToTable(
         event: '*',
         schema: 'public',
         table: tableName,
-        filter: filter,
+        filter,
       },
-      callback
+      callback,
     )
     .subscribe();
 

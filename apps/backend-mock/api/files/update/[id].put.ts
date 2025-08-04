@@ -2,7 +2,12 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 파일 정보 수정
-async function updateFileWithSupabase(event: any, userinfo: any, fileId: string, updateData: any) {
+async function updateFileWithSupabase(
+  event: any,
+  userinfo: any,
+  fileId: string,
+  updateData: any,
+) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');
@@ -14,7 +19,10 @@ async function updateFileWithSupabase(event: any, userinfo: any, fileId: string,
     }
 
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return unAuthorizedResponse(event);
@@ -38,7 +46,9 @@ async function updateFileWithSupabase(event: any, userinfo: any, fileId: string,
       .select('role')
       .eq('user_id', user.id);
 
-    const isAdmin = userRoles?.some(ur => ['super', 'admin'].includes(ur.role));
+    const isAdmin = userRoles?.some((ur) =>
+      ['admin', 'super'].includes(ur.role),
+    );
 
     // 권한 확인 - 파일 소유자이거나 관리자여야 수정 가능
     if (!isAdmin && existingFile.uploaded_by !== user.id) {
@@ -52,9 +62,12 @@ async function updateFileWithSupabase(event: any, userinfo: any, fileId: string,
     };
 
     // 허용된 필드만 업데이트
-    if (updateData.altText !== undefined) dataToUpdate.alt_text = updateData.altText;
-    if (updateData.description !== undefined) dataToUpdate.description = updateData.description;
-    if (updateData.tags !== undefined) dataToUpdate.tags = Array.isArray(updateData.tags) ? updateData.tags : [];
+    if (updateData.altText !== undefined)
+      dataToUpdate.alt_text = updateData.altText;
+    if (updateData.description !== undefined)
+      dataToUpdate.description = updateData.description;
+    if (updateData.tags !== undefined)
+      dataToUpdate.tags = Array.isArray(updateData.tags) ? updateData.tags : [];
     if (updateData.isPublic !== undefined) {
       dataToUpdate.is_public = updateData.isPublic;
       dataToUpdate.access_level = updateData.isPublic ? 'public' : 'private';
@@ -70,7 +83,9 @@ async function updateFileWithSupabase(event: any, userinfo: any, fileId: string,
 
     if (updateError) {
       console.error('파일 정보 업데이트 실패:', updateError);
-      return useResponseError('파일 정보 업데이트에 실패했습니다: ' + updateError.message);
+      return useResponseError(
+        `파일 정보 업데이트에 실패했습니다: ${updateError.message}`,
+      );
     }
 
     // 공개 URL 생성
@@ -100,7 +115,6 @@ async function updateFileWithSupabase(event: any, userinfo: any, fileId: string,
       updatedAt: updatedFile.updated_at,
       message: '파일 정보가 성공적으로 업데이트되었습니다.',
     });
-
   } catch (error) {
     console.error('Supabase 파일 정보 수정 오류:', error);
     return useResponseError('파일 정보 수정 중 오류가 발생했습니다.');
@@ -117,7 +131,7 @@ function updateFileWithMock(fileId: string, updateData: any) {
     url: 'https://unpkg.com/@vbenjs/static-source@0.1.7/source/logo-v1.webp',
     originalName: 'logo-v1.webp',
     fileName: 'general/mock-file.webp',
-    fileSize: 12345,
+    fileSize: 12_345,
     mimeType: 'image/webp',
     bucket: 'user-uploads',
     altText: updateData.altText || 'Updated alt text',
@@ -159,8 +173,9 @@ export default eventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 파일 정보 수정');

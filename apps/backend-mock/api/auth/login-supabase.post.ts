@@ -1,7 +1,8 @@
 import { supabase } from '@vben/utils';
+
 import {
   clearRefreshTokenCookie,
-  setRefreshTokenCookie
+  setRefreshTokenCookie,
 } from '~/utils/cookie-utils';
 import { forbiddenResponse } from '~/utils/response';
 
@@ -21,10 +22,11 @@ export default defineEventHandler(async (event) => {
 
   try {
     // 1. Supabase Auth로 로그인
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: password,
-    });
+    const { data: authData, error: authError } =
+      await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password,
+      });
 
     if (authError || !authData.user) {
       clearRefreshTokenCookie(event);
@@ -44,16 +46,20 @@ export default defineEventHandler(async (event) => {
     }
 
     // 3. 사용자 역할 조회
-    const { data: userRoles, error: roleError } = await supabase
-      .rpc('get_user_roles', { user_id: authData.user.id });
+    const { data: userRoles, error: roleError } = await supabase.rpc(
+      'get_user_roles',
+      { user_id: authData.user.id },
+    );
 
     if (roleError) {
       console.error('사용자 역할 조회 실패:', roleError);
     }
 
     // 4. 사용자 권한 조회
-    const { data: userPermissions, error: permError } = await supabase
-      .rpc('get_user_permissions', { user_id: authData.user.id });
+    const { data: userPermissions, error: permError } = await supabase.rpc(
+      'get_user_permissions',
+      { user_id: authData.user.id },
+    );
 
     if (permError) {
       console.error('사용자 권한 조회 실패:', permError);
@@ -87,7 +93,6 @@ export default defineEventHandler(async (event) => {
       ...userData,
       accessToken: authData.session?.access_token,
     });
-
   } catch (error) {
     console.error('Supabase 로그인 오류:', error);
     return forbiddenResponse(event, 'Authentication failed.');

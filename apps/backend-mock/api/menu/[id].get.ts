@@ -2,7 +2,11 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 메뉴 상세 조회
-async function getMenuDetailWithSupabase(event: any, userinfo: any, menuId: string) {
+async function getMenuDetailWithSupabase(
+  event: any,
+  userinfo: any,
+  menuId: string,
+) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');
@@ -10,11 +14,13 @@ async function getMenuDetailWithSupabase(event: any, userinfo: any, menuId: stri
     // 메뉴 상세 정보 조회
     const { data: menu, error: menuError } = await supabase
       .from('menus')
-      .select(`
+      .select(
+        `
         *,
         parent:menus!menus_pid_fkey(id, name),
         children:menus!menus_pid_fkey(id, name, type, status, sort_order)
-      `)
+      `,
+      )
       .eq('id', menuId)
       .single();
 
@@ -50,7 +56,6 @@ async function getMenuDetailWithSupabase(event: any, userinfo: any, menuId: stri
     };
 
     return useResponseSuccess(formattedMenu);
-
   } catch (error) {
     console.error('Supabase 메뉴 상세 조회 오류:', error);
     return useResponseError('메뉴 상세 조회 중 오류가 발생했습니다.');
@@ -60,7 +65,7 @@ async function getMenuDetailWithSupabase(event: any, userinfo: any, menuId: stri
 // Mock 메뉴 상세 조회
 function getMenuDetailWithMock(menuId: string) {
   // Mock 데이터에서 해당 메뉴 찾기
-  const menu = MOCK_MENU_LIST.find(item => item.id === Number(menuId));
+  const menu = MOCK_MENU_LIST.find((item) => item.id === Number(menuId));
 
   if (!menu) {
     setResponseStatus(event, 404);
@@ -68,13 +73,14 @@ function getMenuDetailWithMock(menuId: string) {
   }
 
   // 부모 메뉴 찾기
-  const parent = menu.pid ? MOCK_MENU_LIST.find(item => item.id === menu.pid) : null;
+  const parent = menu.pid
+    ? MOCK_MENU_LIST.find((item) => item.id === menu.pid)
+    : null;
 
   // 자식 메뉴들 찾기
-  const children = MOCK_MENU_LIST
-    .filter(item => item.pid === menu.id)
+  const children = MOCK_MENU_LIST.filter((item) => item.pid === menu.id)
     .sort((a, b) => (a.meta?.order || 0) - (b.meta?.order || 0))
-    .map(child => ({
+    .map((child) => ({
       id: child.id,
       name: child.name,
       type: child.type,
@@ -110,7 +116,7 @@ export default eventHandler(async (event) => {
 
   // 관리자 권한 확인
   const userRole = userinfo.roles?.[0] || 'user';
-  if (!['super', 'admin'].includes(userRole)) {
+  if (!['admin', 'super'].includes(userRole)) {
     setResponseStatus(event, 403);
     return useResponseError('메뉴 조회 권한이 없습니다.');
   }
@@ -123,8 +129,9 @@ export default eventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 메뉴 상세 조회');

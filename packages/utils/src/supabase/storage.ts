@@ -1,9 +1,10 @@
 import type { FileObject, StorageError } from '@supabase/supabase-js';
+
 import { supabase } from './client';
 
 export interface UploadResponse {
-  data: { path: string } | null;
-  error: StorageError | null;
+  data: null | { path: string };
+  error: null | StorageError;
 }
 
 export interface UploadOptions {
@@ -18,8 +19,8 @@ export interface UploadOptions {
 export async function uploadFile(
   bucketName: string,
   path: string,
-  file: File | Blob,
-  options?: UploadOptions
+  file: Blob | File,
+  options?: UploadOptions,
 ): Promise<UploadResponse> {
   try {
     const { data, error } = await supabase.storage
@@ -43,9 +44,7 @@ export async function uploadFile(
  * 파일 다운로드 URL 생성
  */
 export function getPublicUrl(bucketName: string, path: string): string {
-  const { data } = supabase.storage
-    .from(bucketName)
-    .getPublicUrl(path);
+  const { data } = supabase.storage.from(bucketName).getPublicUrl(path);
 
   return data.publicUrl;
 }
@@ -56,8 +55,8 @@ export function getPublicUrl(bucketName: string, path: string): string {
 export async function createSignedUrl(
   bucketName: string,
   path: string,
-  expiresIn: number = 60
-): Promise<{ data: { signedUrl: string } | null; error: StorageError | null }> {
+  expiresIn: number = 60,
+): Promise<{ data: null | { signedUrl: string }; error: null | StorageError }> {
   try {
     const { data, error } = await supabase.storage
       .from(bucketName)
@@ -82,16 +81,14 @@ export async function listFiles(
     limit?: number;
     offset?: number;
     sortBy?: { column: string; order: string };
-  }
-): Promise<{ data: FileObject[] | null; error: StorageError | null }> {
+  },
+): Promise<{ data: FileObject[] | null; error: null | StorageError }> {
   try {
-    const { data, error } = await supabase.storage
-      .from(bucketName)
-      .list(path, {
-        limit: options?.limit,
-        offset: options?.offset,
-        sortBy: options?.sortBy,
-      });
+    const { data, error } = await supabase.storage.from(bucketName).list(path, {
+      limit: options?.limit,
+      offset: options?.offset,
+      sortBy: options?.sortBy,
+    });
 
     return { data, error };
   } catch (error) {
@@ -107,8 +104,8 @@ export async function listFiles(
  */
 export async function deleteFile(
   bucketName: string,
-  paths: string[]
-): Promise<{ data: FileObject[] | null; error: StorageError | null }> {
+  paths: string[],
+): Promise<{ data: FileObject[] | null; error: null | StorageError }> {
   try {
     const { data, error } = await supabase.storage
       .from(bucketName)
@@ -129,8 +126,8 @@ export async function deleteFile(
 export async function moveFile(
   bucketName: string,
   fromPath: string,
-  toPath: string
-): Promise<{ data: { message: string } | null; error: StorageError | null }> {
+  toPath: string,
+): Promise<{ data: null | { message: string }; error: null | StorageError }> {
   try {
     const { data, error } = await supabase.storage
       .from(bucketName)
@@ -151,8 +148,8 @@ export async function moveFile(
 export async function copyFile(
   bucketName: string,
   fromPath: string,
-  toPath: string
-): Promise<{ data: { path: string } | null; error: StorageError | null }> {
+  toPath: string,
+): Promise<{ data: null | { path: string }; error: null | StorageError }> {
   try {
     const { data, error } = await supabase.storage
       .from(bucketName)
@@ -174,24 +171,22 @@ export function getTransformedImageUrl(
   bucketName: string,
   path: string,
   options: {
-    width?: number;
+    format?: 'auto' | 'origin' | 'webp';
     height?: number;
-    resize?: 'cover' | 'contain' | 'fill';
-    format?: 'origin' | 'auto' | 'webp';
     quality?: number;
-  }
+    resize?: 'contain' | 'cover' | 'fill';
+    width?: number;
+  },
 ): string {
-  const { data } = supabase.storage
-    .from(bucketName)
-    .getPublicUrl(path, {
-      transform: {
-        width: options.width,
-        height: options.height,
-        resize: options.resize,
-        format: options.format,
-        quality: options.quality,
-      },
-    });
+  const { data } = supabase.storage.from(bucketName).getPublicUrl(path, {
+    transform: {
+      width: options.width,
+      height: options.height,
+      resize: options.resize,
+      format: options.format,
+      quality: options.quality,
+    },
+  });
 
   return data.publicUrl;
 }

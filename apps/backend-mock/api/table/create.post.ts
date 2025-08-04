@@ -2,7 +2,11 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 상품 생성
-async function createProductWithSupabase(event: any, userinfo: any, productData: any) {
+async function createProductWithSupabase(
+  event: any,
+  userinfo: any,
+  productData: any,
+) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');
@@ -14,7 +18,10 @@ async function createProductWithSupabase(event: any, userinfo: any, productData:
     }
 
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return unAuthorizedResponse(event);
@@ -49,7 +56,9 @@ async function createProductWithSupabase(event: any, userinfo: any, productData:
 
     if (insertError) {
       console.error('상품 생성 실패:', insertError);
-      return useResponseError('상품 생성에 실패했습니다: ' + insertError.message);
+      return useResponseError(
+        `상품 생성에 실패했습니다: ${insertError.message}`,
+      );
     }
 
     // 응답 데이터 포맷팅 (기존 mock 형식과 호환)
@@ -75,7 +84,6 @@ async function createProductWithSupabase(event: any, userinfo: any, productData:
       createdAt: newProduct.created_at,
       updatedAt: newProduct.updated_at,
     });
-
   } catch (error) {
     console.error('Supabase 상품 생성 오류:', error);
     return useResponseError('상품 생성 중 오류가 발생했습니다.');
@@ -87,8 +95,12 @@ function createProductWithMock(productData: any) {
   // Mock에서는 단순히 성공 응답만 반환
   const newProduct = {
     id: Date.now().toString(),
-    imageUrl: productData.imageUrl || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300',
-    imageUrl2: productData.imageUrl2 || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300',
+    imageUrl:
+      productData.imageUrl ||
+      'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300',
+    imageUrl2:
+      productData.imageUrl2 ||
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300',
     open: productData.open ?? true,
     status: productData.status || 'success',
     productName: productData.productName,
@@ -97,7 +109,8 @@ function createProductWithMock(productData: any) {
     quantity: productData.quantity || 0,
     available: productData.available ?? true,
     category: productData.category,
-    releaseDate: productData.releaseDate || new Date().toISOString().split('T')[0],
+    releaseDate:
+      productData.releaseDate || new Date().toISOString().split('T')[0],
     rating: productData.rating || 0,
     description: productData.description,
     weight: productData.weight || 0,
@@ -121,7 +134,7 @@ export default eventHandler(async (event) => {
 
   // 관리자 권한 확인
   const userRole = userinfo.roles?.[0] || 'user';
-  if (!['super', 'admin'].includes(userRole)) {
+  if (!['admin', 'super'].includes(userRole)) {
     setResponseStatus(event, 403);
     return useResponseError('상품 생성 권한이 없습니다.');
   }
@@ -139,14 +152,18 @@ export default eventHandler(async (event) => {
     return useResponseError('카테고리는 필수입니다.');
   }
 
-  if (body.price !== undefined && (isNaN(Number(body.price)) || Number(body.price) < 0)) {
+  if (
+    body.price !== undefined &&
+    (isNaN(Number(body.price)) || Number(body.price) < 0)
+  ) {
     setResponseStatus(event, 400);
     return useResponseError('올바른 가격을 입력해주세요.');
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 상품 생성');

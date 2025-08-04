@@ -2,7 +2,12 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 상품 수정
-async function updateProductWithSupabase(event: any, userinfo: any, productId: string, productData: any) {
+async function updateProductWithSupabase(
+  event: any,
+  userinfo: any,
+  productId: string,
+  productData: any,
+) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');
@@ -14,7 +19,10 @@ async function updateProductWithSupabase(event: any, userinfo: any, productId: s
     }
 
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return unAuthorizedResponse(event);
@@ -39,23 +47,36 @@ async function updateProductWithSupabase(event: any, userinfo: any, productId: s
     };
 
     // 수정할 필드만 추가
-    if (productData.productName !== undefined) updateData.product_name = productData.productName;
-    if (productData.description !== undefined) updateData.description = productData.description;
-    if (productData.category !== undefined) updateData.category = productData.category;
+    if (productData.productName !== undefined)
+      updateData.product_name = productData.productName;
+    if (productData.description !== undefined)
+      updateData.description = productData.description;
+    if (productData.category !== undefined)
+      updateData.category = productData.category;
     if (productData.price !== undefined) updateData.price = productData.price;
-    if (productData.currency !== undefined) updateData.currency = productData.currency;
-    if (productData.quantity !== undefined) updateData.quantity = productData.quantity;
-    if (productData.status !== undefined) updateData.status = productData.status;
-    if (productData.available !== undefined) updateData.available = productData.available;
-    if (productData.inProduction !== undefined) updateData.in_production = productData.inProduction;
+    if (productData.currency !== undefined)
+      updateData.currency = productData.currency;
+    if (productData.quantity !== undefined)
+      updateData.quantity = productData.quantity;
+    if (productData.status !== undefined)
+      updateData.status = productData.status;
+    if (productData.available !== undefined)
+      updateData.available = productData.available;
+    if (productData.inProduction !== undefined)
+      updateData.in_production = productData.inProduction;
     if (productData.open !== undefined) updateData.open = productData.open;
-    if (productData.imageUrl !== undefined) updateData.image_url = productData.imageUrl;
-    if (productData.imageUrl2 !== undefined) updateData.image_url2 = productData.imageUrl2;
-    if (productData.weight !== undefined) updateData.weight = productData.weight;
+    if (productData.imageUrl !== undefined)
+      updateData.image_url = productData.imageUrl;
+    if (productData.imageUrl2 !== undefined)
+      updateData.image_url2 = productData.imageUrl2;
+    if (productData.weight !== undefined)
+      updateData.weight = productData.weight;
     if (productData.color !== undefined) updateData.color = productData.color;
-    if (productData.rating !== undefined) updateData.rating = productData.rating;
+    if (productData.rating !== undefined)
+      updateData.rating = productData.rating;
     if (productData.tags !== undefined) updateData.tags = productData.tags;
-    if (productData.releaseDate !== undefined) updateData.release_date = productData.releaseDate;
+    if (productData.releaseDate !== undefined)
+      updateData.release_date = productData.releaseDate;
 
     const { data: updatedProduct, error: updateError } = await supabase
       .from('products')
@@ -66,7 +87,9 @@ async function updateProductWithSupabase(event: any, userinfo: any, productId: s
 
     if (updateError) {
       console.error('상품 수정 실패:', updateError);
-      return useResponseError('상품 수정에 실패했습니다: ' + updateError.message);
+      return useResponseError(
+        `상품 수정에 실패했습니다: ${updateError.message}`,
+      );
     }
 
     // 응답 데이터 포맷팅 (기존 mock 형식과 호환)
@@ -92,7 +115,6 @@ async function updateProductWithSupabase(event: any, userinfo: any, productId: s
       createdAt: updatedProduct.created_at,
       updatedAt: updatedProduct.updated_at,
     });
-
   } catch (error) {
     console.error('Supabase 상품 수정 오류:', error);
     return useResponseError('상품 수정 중 오류가 발생했습니다.');
@@ -121,7 +143,7 @@ export default eventHandler(async (event) => {
 
   // 관리자 권한 확인
   const userRole = userinfo.roles?.[0] || 'user';
-  if (!['super', 'admin'].includes(userRole)) {
+  if (!['admin', 'super'].includes(userRole)) {
     setResponseStatus(event, 403);
     return useResponseError('상품 수정 권한이 없습니다.');
   }
@@ -141,24 +163,33 @@ export default eventHandler(async (event) => {
     return useResponseError('상품명은 비어있을 수 없습니다.');
   }
 
-  if (body.price !== undefined && (isNaN(Number(body.price)) || Number(body.price) < 0)) {
+  if (
+    body.price !== undefined &&
+    (isNaN(Number(body.price)) || Number(body.price) < 0)
+  ) {
     setResponseStatus(event, 400);
     return useResponseError('올바른 가격을 입력해주세요.');
   }
 
-  if (body.status && !['success', 'error', 'warning'].includes(body.status)) {
+  if (body.status && !['error', 'success', 'warning'].includes(body.status)) {
     setResponseStatus(event, 400);
     return useResponseError('올바른 상태를 지정해주세요.');
   }
 
-  if (body.rating !== undefined && (isNaN(Number(body.rating)) || Number(body.rating) < 0 || Number(body.rating) > 5)) {
+  if (
+    body.rating !== undefined &&
+    (isNaN(Number(body.rating)) ||
+      Number(body.rating) < 0 ||
+      Number(body.rating) > 5)
+  ) {
     setResponseStatus(event, 400);
     return useResponseError('평점은 0~5 사이의 값이어야 합니다.');
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 상품 수정');

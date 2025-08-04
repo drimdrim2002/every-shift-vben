@@ -2,7 +2,11 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 파일 상세 조회
-async function getFileDetailWithSupabase(event: any, userinfo: any, fileId: string) {
+async function getFileDetailWithSupabase(
+  event: any,
+  userinfo: any,
+  fileId: string,
+) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');
@@ -14,7 +18,10 @@ async function getFileDetailWithSupabase(event: any, userinfo: any, fileId: stri
     }
 
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return unAuthorizedResponse(event);
@@ -23,12 +30,14 @@ async function getFileDetailWithSupabase(event: any, userinfo: any, fileId: stri
     // 파일 정보 조회
     const { data: fileRecord, error: findError } = await supabase
       .from('file_uploads')
-      .select(`
+      .select(
+        `
         *,
         uploader:uploaded_by (
           email
         )
-      `)
+      `,
+      )
       .eq('id', fileId)
       .single();
 
@@ -43,10 +52,16 @@ async function getFileDetailWithSupabase(event: any, userinfo: any, fileId: stri
       .select('role')
       .eq('user_id', user.id);
 
-    const isAdmin = userRoles?.some(ur => ['super', 'admin'].includes(ur.role));
+    const isAdmin = userRoles?.some((ur) =>
+      ['admin', 'super'].includes(ur.role),
+    );
 
     // 권한 확인 - 공개 파일이거나, 파일 소유자이거나, 관리자여야 조회 가능
-    if (!fileRecord.is_public && !isAdmin && fileRecord.uploaded_by !== user.id) {
+    if (
+      !fileRecord.is_public &&
+      !isAdmin &&
+      fileRecord.uploaded_by !== user.id
+    ) {
       setResponseStatus(event, 403);
       return useResponseError('파일 조회 권한이 없습니다.');
     }
@@ -59,9 +74,10 @@ async function getFileDetailWithSupabase(event: any, userinfo: any, fileId: stri
     // 서명된 URL 생성 (비공개 파일의 경우)
     let signedUrl = null;
     if (!fileRecord.is_public) {
-      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-        .from(fileRecord.bucket_name)
-        .createSignedUrl(fileRecord.file_name, 3600); // 1시간 유효
+      const { data: signedUrlData, error: signedUrlError } =
+        await supabase.storage
+          .from(fileRecord.bucket_name)
+          .createSignedUrl(fileRecord.file_name, 3600); // 1시간 유효
 
       if (!signedUrlError) {
         signedUrl = signedUrlData.signedUrl;
@@ -93,7 +109,6 @@ async function getFileDetailWithSupabase(event: any, userinfo: any, fileId: stri
       createdAt: fileRecord.created_at,
       updatedAt: fileRecord.updated_at,
     });
-
   } catch (error) {
     console.error('Supabase 파일 상세 조회 오류:', error);
     return useResponseError('파일 상세 조회 중 오류가 발생했습니다.');
@@ -106,12 +121,13 @@ function getFileDetailWithMock(fileId: string) {
   const mockFileDetail = {
     id: fileId,
     url: 'https://unpkg.com/@vbenjs/static-source@0.1.7/source/logo-v1.webp',
-    publicUrl: 'https://unpkg.com/@vbenjs/static-source@0.1.7/source/logo-v1.webp',
+    publicUrl:
+      'https://unpkg.com/@vbenjs/static-source@0.1.7/source/logo-v1.webp',
     signedUrl: null,
     originalName: 'logo-v1.webp',
     fileName: 'general/mock-file.webp',
     filePath: 'general/mock-file.webp',
-    fileSize: 12345,
+    fileSize: 12_345,
     mimeType: 'image/webp',
     bucket: 'user-uploads',
     altText: 'Mock logo image',
@@ -148,8 +164,9 @@ export default eventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 파일 상세 조회');

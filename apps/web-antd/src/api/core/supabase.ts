@@ -1,5 +1,6 @@
+import type { User } from '@supabase/supabase-js';
+
 import { supabase } from '@vben/utils';
-import type { AuthError, User } from '@supabase/supabase-js';
 
 export namespace SupabaseApi {
   /** Supabase 로그인 매개변수 */
@@ -22,12 +23,12 @@ export namespace SupabaseApi {
     roles: string[];
     permissions: string[];
     profile?: {
-      id: string;
-      username: string;
-      full_name?: string;
       avatar_url?: string;
-      website?: string;
+      full_name?: string;
+      id: string;
       updated_at: string;
+      username: string;
+      website?: string;
     };
   }
 
@@ -49,7 +50,9 @@ export namespace SupabaseApi {
 /**
  * Supabase 직접 로그인
  */
-export async function supabaseLoginApi(params: SupabaseApi.LoginParams): Promise<SupabaseApi.LoginResult> {
+export async function supabaseLoginApi(
+  params: SupabaseApi.LoginParams,
+): Promise<SupabaseApi.LoginResult> {
   const { data, error } = await supabase.auth.signInWithPassword({
     email: params.email,
     password: params.password,
@@ -86,7 +89,10 @@ export async function supabaseLogoutApi(): Promise<void> {
  */
 export async function supabaseGetUserInfoApi(): Promise<SupabaseApi.UserInfo> {
   // 현재 사용자 가져오기
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
   if (userError || !user) {
     throw new Error('사용자 정보를 가져올 수 없습니다.');
@@ -100,7 +106,8 @@ export async function supabaseGetUserInfoApi(): Promise<SupabaseApi.UserInfo> {
       .eq('id', user.id)
       .single();
 
-    if (profileError && profileError.code !== 'PGRST116') { // 데이터가 없는 경우가 아닌 실제 오류
+    if (profileError && profileError.code !== 'PGRST116') {
+      // 데이터가 없는 경우가 아닌 실제 오류
       console.warn('프로필 조회 실패:', profileError);
     }
 
@@ -114,11 +121,13 @@ export async function supabaseGetUserInfoApi(): Promise<SupabaseApi.UserInfo> {
       console.warn('역할 조회 실패:', rolesError);
     }
 
-    const roles = userRoles?.map(ur => ur.role) || [];
+    const roles = userRoles?.map((ur) => ur.role) || [];
 
     // 사용자 권한 조회 (RPC 함수 사용)
-    const { data: permissions, error: permissionsError } = await supabase
-      .rpc('get_user_permissions', { target_user_id: user.id });
+    const { data: permissions, error: permissionsError } = await supabase.rpc(
+      'get_user_permissions',
+      { target_user_id: user.id },
+    );
 
     if (permissionsError) {
       console.warn('권한 조회 실패:', permissionsError);
@@ -151,7 +160,9 @@ export async function supabaseRefreshTokenApi(): Promise<string> {
   const { data, error } = await supabase.auth.refreshSession();
 
   if (error || !data.session) {
-    throw new Error(`토큰 새로고침 실패: ${error?.message || '세션이 유효하지 않습니다.'}`);
+    throw new Error(
+      `토큰 새로고침 실패: ${error?.message || '세션이 유효하지 않습니다.'}`,
+    );
   }
 
   return data.session.access_token;
@@ -163,18 +174,20 @@ export async function supabaseRefreshTokenApi(): Promise<string> {
 export async function supabaseUploadFileApi(
   file: File,
   bucket: string = 'user-uploads',
-  path?: string
+  path?: string,
 ): Promise<SupabaseApi.FileUploadResult> {
   // 고유한 파일 경로 생성
   const fileExtension = file.name.split('.').pop() || '';
-  const uniquePath = path || `uploads/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
+  const uniquePath =
+    path ||
+    `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExtension}`;
 
   // Supabase Storage에 업로드
   const { data: uploadResult, error: uploadError } = await supabase.storage
     .from(bucket)
     .upload(uniquePath, file, {
       cacheControl: '3600',
-      upsert: false
+      upsert: false,
     });
 
   if (uploadError) {
@@ -187,7 +200,9 @@ export async function supabaseUploadFileApi(
     .getPublicUrl(uniquePath);
 
   // 현재 사용자 ID 가져오기
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // 파일 메타데이터 저장
   const { data: fileRecord, error: recordError } = await supabase
@@ -202,7 +217,7 @@ export async function supabaseUploadFileApi(
       is_image: file.type.startsWith('image/'),
       uploaded_by: user?.id,
       is_public: true,
-      access_level: 'public'
+      access_level: 'public',
     })
     .select()
     .single();
@@ -228,10 +243,11 @@ export async function supabaseUploadFileApi(
 /**
  * Supabase Storage 파일 삭제
  */
-export async function supabaseDeleteFileApi(bucket: string, path: string): Promise<void> {
-  const { error } = await supabase.storage
-    .from(bucket)
-    .remove([path]);
+export async function supabaseDeleteFileApi(
+  bucket: string,
+  path: string,
+): Promise<void> {
+  const { error } = await supabase.storage.from(bucket).remove([path]);
 
   if (error) {
     throw new Error(`파일 삭제 실패: ${error.message}`);
@@ -241,13 +257,14 @@ export async function supabaseDeleteFileApi(bucket: string, path: string): Promi
 /**
  * Supabase Storage 파일 목록 조회
  */
-export async function supabaseListFilesApi(bucket: string, folder: string = ''): Promise<any[]> {
-  const { data, error } = await supabase.storage
-    .from(bucket)
-    .list(folder, {
-      limit: 100,
-      offset: 0,
-    });
+export async function supabaseListFilesApi(
+  bucket: string,
+  folder: string = '',
+): Promise<any[]> {
+  const { data, error } = await supabase.storage.from(bucket).list(folder, {
+    limit: 100,
+    offset: 0,
+  });
 
   if (error) {
     throw new Error(`파일 목록 조회 실패: ${error.message}`);
@@ -268,7 +285,10 @@ export function isSupabaseEnabled(): boolean {
  */
 export async function checkSupabaseConnection(): Promise<boolean> {
   try {
-    const { data, error } = await supabase.from('profiles').select('id').limit(1);
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id')
+      .limit(1);
     return !error;
   } catch (error) {
     console.error('Supabase 연결 확인 실패:', error);

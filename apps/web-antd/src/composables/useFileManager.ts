@@ -1,4 +1,5 @@
-import { ref, computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
+
 import { message } from 'ant-design-vue';
 
 export interface FileRecord {
@@ -38,39 +39,39 @@ export interface FileListParams {
 
 export interface FileStats {
   overview: {
+    averageSize: number;
+    documentFiles: number;
+    imageFiles: number;
+    privateFiles: number;
+    publicFiles: number;
     totalFiles: number;
     totalSize: number;
-    imageFiles: number;
-    documentFiles: number;
-    publicFiles: number;
-    privateFiles: number;
-    averageSize: number;
   };
   bucketStats: Array<{
     bucket: string;
     fileCount: number;
-    totalSize: number;
     imageCount: number;
-    publicCount: number;
     privateCount: number;
+    publicCount: number;
+    totalSize: number;
   }>;
   mimeTypeStats: Array<{
-    type: string;
     count: number;
     size: number;
+    type: string;
   }>;
   sizeDistribution: {
-    small: number;
-    medium: number;
     large: number;
+    medium: number;
+    small: number;
   };
   recentFiles: Array<{
-    id: string;
-    originalName: string;
     fileSize: number;
-    mimeType: string;
-    uploadedAt: string;
+    id: string;
     isImage: boolean;
+    mimeType: string;
+    originalName: string;
+    uploadedAt: string;
   }>;
 }
 
@@ -95,7 +96,9 @@ export function useFileManager() {
 
   // 계산된 속성
   const hasFiles = computed(() => files.value.length > 0);
-  const totalPages = computed(() => Math.ceil(total.value / (searchParams.pageSize || 10)));
+  const totalPages = computed(() =>
+    Math.ceil(total.value / (searchParams.pageSize || 10)),
+  );
   const isLoading = computed(() => loading.value);
 
   // 파일 목록 조회
@@ -135,7 +138,11 @@ export function useFileManager() {
       return result;
     } catch (error) {
       console.error('파일 목록 조회 오류:', error);
-      message.error(error instanceof Error ? error.message : '파일 목록 조회에 실패했습니다.');
+      message.error(
+        error instanceof Error
+          ? error.message
+          : '파일 목록 조회에 실패했습니다.',
+      );
       throw error;
     } finally {
       loading.value = false;
@@ -163,13 +170,20 @@ export function useFileManager() {
       return result.data;
     } catch (error) {
       console.error('파일 상세 조회 오류:', error);
-      message.error(error instanceof Error ? error.message : '파일 정보 조회에 실패했습니다.');
+      message.error(
+        error instanceof Error
+          ? error.message
+          : '파일 정보 조회에 실패했습니다.',
+      );
       throw error;
     }
   };
 
   // 파일 정보 수정
-  const updateFile = async (fileId: string, updateData: Partial<FileRecord>): Promise<FileRecord> => {
+  const updateFile = async (
+    fileId: string,
+    updateData: Partial<FileRecord>,
+  ): Promise<FileRecord> => {
     try {
       const response = await fetch(`/api/files/update/${fileId}`, {
         method: 'PUT',
@@ -191,7 +205,7 @@ export function useFileManager() {
       }
 
       // 로컬 상태 업데이트
-      const fileIndex = files.value.findIndex(f => f.id === fileId);
+      const fileIndex = files.value.findIndex((f) => f.id === fileId);
       if (fileIndex !== -1) {
         files.value[fileIndex] = { ...files.value[fileIndex], ...result.data };
       }
@@ -200,7 +214,11 @@ export function useFileManager() {
       return result.data;
     } catch (error) {
       console.error('파일 수정 오류:', error);
-      message.error(error instanceof Error ? error.message : '파일 정보 수정에 실패했습니다.');
+      message.error(
+        error instanceof Error
+          ? error.message
+          : '파일 정보 수정에 실패했습니다.',
+      );
       throw error;
     }
   };
@@ -224,13 +242,15 @@ export function useFileManager() {
       }
 
       // 로컬 상태에서 제거
-      files.value = files.value.filter(f => f.id !== fileId);
+      files.value = files.value.filter((f) => f.id !== fileId);
       total.value = Math.max(0, total.value - 1);
 
       message.success('파일이 성공적으로 삭제되었습니다.');
     } catch (error) {
       console.error('파일 삭제 오류:', error);
-      message.error(error instanceof Error ? error.message : '파일 삭제에 실패했습니다.');
+      message.error(
+        error instanceof Error ? error.message : '파일 삭제에 실패했습니다.',
+      );
       throw error;
     }
   };
@@ -269,19 +289,27 @@ export function useFileManager() {
 
       // 로컬 상태에서 성공적으로 삭제된 파일들 제거
       if (result.data.successfulDeletions) {
-        const deletedIds = result.data.successfulDeletions.map((item: any) => item.id);
-        files.value = files.value.filter(f => !deletedIds.includes(f.id));
+        const deletedIds = result.data.successfulDeletions.map(
+          (item: any) => item.id,
+        );
+        files.value = files.value.filter((f) => !deletedIds.includes(f.id));
         total.value = Math.max(0, total.value - deletedIds.length);
       }
 
-      message.success(`${result.data.successCount}개 파일이 성공적으로 삭제되었습니다.`);
+      message.success(
+        `${result.data.successCount}개 파일이 성공적으로 삭제되었습니다.`,
+      );
 
       if (result.data.failureCount > 0) {
-        message.warning(`${result.data.failureCount}개 파일 삭제에 실패했습니다.`);
+        message.warning(
+          `${result.data.failureCount}개 파일 삭제에 실패했습니다.`,
+        );
       }
     } catch (error) {
       console.error('일괄 삭제 오류:', error);
-      message.error(error instanceof Error ? error.message : '일괄 삭제에 실패했습니다.');
+      message.error(
+        error instanceof Error ? error.message : '일괄 삭제에 실패했습니다.',
+      );
       throw error;
     }
   };
@@ -308,7 +336,11 @@ export function useFileManager() {
       return result.data;
     } catch (error) {
       console.error('파일 통계 조회 오류:', error);
-      message.error(error instanceof Error ? error.message : '파일 통계 조회에 실패했습니다.');
+      message.error(
+        error instanceof Error
+          ? error.message
+          : '파일 통계 조회에 실패했습니다.',
+      );
       throw error;
     }
   };
@@ -341,7 +373,7 @@ export function useFileManager() {
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
   };
 
   // 파일 타입 아이콘 가져오기
@@ -349,7 +381,8 @@ export function useFileManager() {
     if (mimeType.startsWith('image/')) return 'file-image';
     if (mimeType.includes('pdf')) return 'file-pdf';
     if (mimeType.includes('word')) return 'file-word';
-    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'file-excel';
+    if (mimeType.includes('excel') || mimeType.includes('spreadsheet'))
+      return 'file-excel';
     if (mimeType.includes('text')) return 'file-text';
     return 'file';
   };

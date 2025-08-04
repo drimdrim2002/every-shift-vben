@@ -45,19 +45,21 @@ async function getTableDataWithSupabase(event: any, userinfo: any) {
     const query = getQuery(event);
     const page = Number(query.page) || 1;
     const pageSize = Number(query.pageSize) || 10;
-    const sortBy = query.sortBy as string || 'created_at';
-    const sortOrder = query.sortOrder as string || 'desc';
-    const search = query.search as string || '';
-    const category = query.category as string || '';
-    const status = query.status as string || '';
-    const available = query.available !== undefined ? query.available === 'true' : null;
+    const sortBy = (query.sortBy as string) || 'created_at';
+    const sortOrder = (query.sortOrder as string) || 'desc';
+    const search = (query.search as string) || '';
+    const category = (query.category as string) || '';
+    const status = (query.status as string) || '';
+    const available =
+      query.available === undefined ? null : query.available === 'true';
     const minPrice = query.minPrice ? Number(query.minPrice) : null;
     const maxPrice = query.maxPrice ? Number(query.maxPrice) : null;
     const minRating = query.minRating ? Number(query.minRating) : null;
 
     // Supabase 검색 함수 호출
-    const { data: products, error: productsError } = await supabase
-      .rpc('search_products', {
+    const { data: products, error: productsError } = await supabase.rpc(
+      'search_products',
+      {
         search_term: search,
         category_filter: category,
         status_filter: status,
@@ -69,7 +71,8 @@ async function getTableDataWithSupabase(event: any, userinfo: any) {
         sort_direction: sortOrder,
         page_size: pageSize,
         page_number: page,
-      });
+      },
+    );
 
     if (productsError) {
       console.error('상품 목록 조회 실패:', productsError);
@@ -77,7 +80,7 @@ async function getTableDataWithSupabase(event: any, userinfo: any) {
     }
 
     // 응답 데이터 포맷팅 (기존 mock 형식과 호환)
-    const formattedProducts = (products || []).map(product => ({
+    const formattedProducts = (products || []).map((product) => ({
       id: product.id,
       imageUrl: product.image_url,
       imageUrl2: product.image_url2,
@@ -101,7 +104,8 @@ async function getTableDataWithSupabase(event: any, userinfo: any) {
     }));
 
     // 총 개수 (첫 번째 레코드에서 추출)
-    const totalCount = products && products.length > 0 ? products[0].total_count : 0;
+    const totalCount =
+      products && products.length > 0 ? products[0].total_count : 0;
 
     return usePageResponseSuccess(
       page.toString(),
@@ -118,10 +122,9 @@ async function getTableDataWithSupabase(event: any, userinfo: any) {
           minPrice,
           maxPrice,
           minRating,
-        }
-      }
+        },
+      },
     );
-
   } catch (error) {
     console.error('Supabase 테이블 데이터 조회 오류:', error);
     return useResponseError('테이블 데이터 조회 중 오류가 발생했습니다.');
@@ -184,8 +187,9 @@ export default eventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 테이블 데이터 조회');

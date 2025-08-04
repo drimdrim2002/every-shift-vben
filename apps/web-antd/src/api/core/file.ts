@@ -59,39 +59,39 @@ export namespace FileApi {
   /** 파일 통계 */
   export interface FileStats {
     overview: {
+      averageSize: number;
+      documentFiles: number;
+      imageFiles: number;
+      privateFiles: number;
+      publicFiles: number;
       totalFiles: number;
       totalSize: number;
-      imageFiles: number;
-      documentFiles: number;
-      publicFiles: number;
-      privateFiles: number;
-      averageSize: number;
     };
     bucketStats: Array<{
       bucket: string;
       fileCount: number;
-      totalSize: number;
       imageCount: number;
-      publicCount: number;
       privateCount: number;
+      publicCount: number;
+      totalSize: number;
     }>;
     mimeTypeStats: Array<{
-      type: string;
       count: number;
       size: number;
+      type: string;
     }>;
     sizeDistribution: {
-      small: number;
-      medium: number;
       large: number;
+      medium: number;
+      small: number;
     };
     recentFiles: Array<{
-      id: string;
-      originalName: string;
       fileSize: number;
-      mimeType: string;
-      uploadedAt: string;
+      id: string;
       isImage: boolean;
+      mimeType: string;
+      originalName: string;
+      uploadedAt: string;
     }>;
   }
 
@@ -109,7 +109,7 @@ export namespace FileApi {
  */
 export async function uploadFileApi(
   file: File,
-  options: FileApi.UploadOptions = {}
+  options: FileApi.UploadOptions = {},
 ): Promise<FileApi.FileInfo> {
   const formData = new FormData();
   formData.append('file', file);
@@ -118,7 +118,8 @@ export async function uploadFileApi(
   const params = new URLSearchParams();
   if (options.bucket) params.append('bucket', options.bucket);
   if (options.category) params.append('category', options.category);
-  if (options.public !== undefined) params.append('public', String(options.public));
+  if (options.public !== undefined)
+    params.append('public', String(options.public));
   if (options.alt_text) params.append('alt_text', options.alt_text);
   if (options.description) params.append('description', options.description);
   if (options.tags) params.append('tags', JSON.stringify(options.tags));
@@ -135,14 +136,18 @@ export async function uploadFileApi(
 /**
  * 파일 목록 조회
  */
-export async function getFileListApi(params: FileApi.ListParams = {}): Promise<FileApi.ListResponse> {
+export async function getFileListApi(
+  params: FileApi.ListParams = {},
+): Promise<FileApi.ListResponse> {
   return requestClient.get<FileApi.ListResponse>('/files/list', { params });
 }
 
 /**
  * 파일 상세 조회
  */
-export async function getFileDetailApi(fileId: string): Promise<FileApi.FileInfo> {
+export async function getFileDetailApi(
+  fileId: string,
+): Promise<FileApi.FileInfo> {
   return requestClient.get<FileApi.FileInfo>(`/files/${fileId}`);
 }
 
@@ -151,7 +156,7 @@ export async function getFileDetailApi(fileId: string): Promise<FileApi.FileInfo
  */
 export async function updateFileApi(
   fileId: string,
-  data: FileApi.UpdateData
+  data: FileApi.UpdateData,
 ): Promise<FileApi.FileInfo> {
   return requestClient.put<FileApi.FileInfo>(`/files/update/${fileId}`, data);
 }
@@ -167,13 +172,13 @@ export async function deleteFileApi(fileId: string): Promise<void> {
  * 파일 일괄 삭제
  */
 export async function bulkDeleteFilesApi(fileIds: string[]): Promise<{
-  totalRequested: number;
-  totalFound: number;
-  successCount: number;
+  failedDeletions: Array<{ error: string; id: string; originalName: string }>;
   failureCount: number;
-  successfulDeletions: Array<{ id: string; originalName: string }>;
-  failedDeletions: Array<{ id: string; originalName: string; error: string }>;
   message: string;
+  successCount: number;
+  successfulDeletions: Array<{ id: string; originalName: string }>;
+  totalFound: number;
+  totalRequested: number;
 }> {
   return requestClient.post('/files/bulk-delete', { fileIds });
 }

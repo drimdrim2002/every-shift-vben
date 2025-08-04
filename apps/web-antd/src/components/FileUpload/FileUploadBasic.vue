@@ -1,94 +1,21 @@
-<template>
-  <div class="file-upload-basic">
-    <a-upload
-      v-model:file-list="fileList"
-      :custom-request="handleUpload"
-      :before-upload="beforeUpload"
-      :show-upload-list="showUploadList"
-      :multiple="multiple"
-      :accept="accept"
-      :disabled="disabled || uploading"
-      @change="handleChange"
-      @remove="handleRemove"
-    >
-      <slot>
-        <a-button
-          :loading="uploading"
-          :disabled="disabled"
-          type="primary"
-        >
-          <UploadOutlined />
-          {{ uploading ? '업로드 중...' : '파일 선택' }}
-        </a-button>
-      </slot>
-    </a-upload>
-
-    <!-- 업로드 진행률 -->
-    <div v-if="uploading && showProgress" class="mt-2">
-      <a-progress
-        :percent="Math.round(uploadProgress)"
-        :status="uploadProgress < 100 ? 'active' : 'success'"
-        size="small"
-      />
-    </div>
-
-    <!-- 업로드된 파일 미리보기 -->
-    <div v-if="showPreview && uploadedFiles.length > 0" class="mt-4">
-      <h4 class="text-sm font-medium text-gray-700 mb-2">업로드된 파일</h4>
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <div
-          v-for="file in uploadedFiles"
-          :key="file.id"
-          class="relative group border rounded-lg p-2 hover:bg-gray-50"
-        >
-          <!-- 이미지 미리보기 -->
-          <div v-if="file.isImage" class="aspect-square overflow-hidden rounded-md mb-2">
-            <img
-              :src="file.url"
-              :alt="file.originalName"
-              class="w-full h-full object-cover"
-            />
-          </div>
-
-          <!-- 파일 아이콘 -->
-          <div v-else class="aspect-square flex items-center justify-center bg-gray-100 rounded-md mb-2">
-            <FileOutlined class="text-2xl text-gray-400" />
-          </div>
-
-          <!-- 파일 정보 -->
-          <div class="text-xs">
-            <p class="font-medium truncate" :title="file.originalName">
-              {{ file.originalName }}
-            </p>
-            <p class="text-gray-500">
-              {{ formatFileSize(file.fileSize) }}
-            </p>
-          </div>
-
-          <!-- 삭제 버튼 -->
-          <a-button
-            v-if="showRemoveButton"
-            size="small"
-            type="text"
-            danger
-            class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
-            @click="handleFileRemove(file.id)"
-          >
-            <DeleteOutlined />
-          </a-button>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import type { UploadFile, UploadProps } from 'ant-design-vue/es/upload/interface';
-import { message } from 'ant-design-vue';
-import { UploadOutlined, FileOutlined, DeleteOutlined } from '@ant-design/icons-vue';
-import { useFileUpload } from '#/composables';
+import type {
+  UploadFile,
+  UploadProps,
+} from 'ant-design-vue/es/upload/interface';
+
 import type { FileUploadOptions, UploadedFileInfo } from '#/composables';
+
+import { computed, ref, watch } from 'vue';
+
+import {
+  DeleteOutlined,
+  FileOutlined,
+  UploadOutlined,
+} from '@ant-design/icons-vue';
+import { message } from 'ant-design-vue';
+
+import { useFileUpload } from '#/composables';
 
 export interface FileUploadBasicProps {
   // 업로드 옵션
@@ -113,7 +40,7 @@ export interface FileUploadBasicProps {
   accept?: string;
 
   // 스타일
-  listType?: 'text' | 'picture' | 'picture-card';
+  listType?: 'picture' | 'picture-card' | 'text';
 }
 
 export interface FileUploadBasicEmits {
@@ -140,8 +67,14 @@ const props = withDefaults(defineProps<FileUploadBasicProps>(), {
 
   maxSize: 10 * 1024 * 1024, // 10MB
   allowedTypes: () => [
-    'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
-    'application/pdf', 'text/plain', 'text/csv',
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/svg+xml',
+    'application/pdf',
+    'text/plain',
+    'text/csv',
   ],
   accept: '',
 
@@ -189,7 +122,7 @@ const formatFileSize = (bytes: number): string => {
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 };
 
 // 업로드 전 검증
@@ -220,7 +153,6 @@ const handleUpload = async (options: any) => {
     onSuccess(result);
     emit('success', result);
     emit('change', uploadedFiles.value);
-
   } catch (error) {
     onError(error);
     emit('error', error instanceof Error ? error : new Error('Upload failed'));
@@ -229,12 +161,23 @@ const handleUpload = async (options: any) => {
 
 // 파일 리스트 변경 핸들러
 const handleChange: UploadProps['onChange'] = (info) => {
-  if (info.file.status === 'uploading') {
-    // 업로드 중
-  } else if (info.file.status === 'done') {
-    message.success(`${info.file.name} 파일이 성공적으로 업로드되었습니다.`);
-  } else if (info.file.status === 'error') {
-    message.error(`${info.file.name} 파일 업로드에 실패했습니다.`);
+  switch (info.file.status) {
+    case 'done': {
+      message.success(`${info.file.name} 파일이 성공적으로 업로드되었습니다.`);
+
+      break;
+    }
+    case 'error': {
+      message.error(`${info.file.name} 파일 업로드에 실패했습니다.`);
+
+      break;
+    }
+    case 'uploading': {
+      // 업로드 중
+
+      break;
+    }
+    // No default
   }
 };
 
@@ -269,6 +212,92 @@ defineExpose({
   uploadProgress,
 });
 </script>
+
+<template>
+  <div class="file-upload-basic">
+    <a-upload
+      v-model:file-list="fileList"
+      :custom-request="handleUpload"
+      :before-upload="beforeUpload"
+      :show-upload-list="showUploadList"
+      :multiple="multiple"
+      :accept="accept"
+      :disabled="disabled || uploading"
+      @change="handleChange"
+      @remove="handleRemove"
+    >
+      <slot>
+        <a-button :loading="uploading" :disabled="disabled" type="primary">
+          <UploadOutlined />
+          {{ uploading ? '업로드 중...' : '파일 선택' }}
+        </a-button>
+      </slot>
+    </a-upload>
+
+    <!-- 업로드 진행률 -->
+    <div v-if="uploading && showProgress" class="mt-2">
+      <a-progress
+        :percent="Math.round(uploadProgress)"
+        :status="uploadProgress < 100 ? 'active' : 'success'"
+        size="small"
+      />
+    </div>
+
+    <!-- 업로드된 파일 미리보기 -->
+    <div v-if="showPreview && uploadedFiles.length > 0" class="mt-4">
+      <h4 class="mb-2 text-sm font-medium text-gray-700">업로드된 파일</h4>
+      <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div
+          v-for="file in uploadedFiles"
+          :key="file.id"
+          class="group relative rounded-lg border p-2 hover:bg-gray-50"
+        >
+          <!-- 이미지 미리보기 -->
+          <div
+            v-if="file.isImage"
+            class="mb-2 aspect-square overflow-hidden rounded-md"
+          >
+            <img
+              :src="file.url"
+              :alt="file.originalName"
+              class="h-full w-full object-cover"
+            />
+          </div>
+
+          <!-- 파일 아이콘 -->
+          <div
+            v-else
+            class="mb-2 flex aspect-square items-center justify-center rounded-md bg-gray-100"
+          >
+            <FileOutlined class="text-2xl text-gray-400" />
+          </div>
+
+          <!-- 파일 정보 -->
+          <div class="text-xs">
+            <p class="truncate font-medium" :title="file.originalName">
+              {{ file.originalName }}
+            </p>
+            <p class="text-gray-500">
+              {{ formatFileSize(file.fileSize) }}
+            </p>
+          </div>
+
+          <!-- 삭제 버튼 -->
+          <a-button
+            v-if="showRemoveButton"
+            size="small"
+            type="text"
+            danger
+            class="absolute right-1 top-1 opacity-0 transition-opacity group-hover:opacity-100"
+            @click="handleFileRemove(file.id)"
+          >
+            <DeleteOutlined />
+          </a-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .file-upload-basic {

@@ -2,7 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 
 // 환경 변수에서 Supabase 설정 가져오기
 const supabaseUrl = 'https://kkxchntkzopfrpnvzzth.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtreGNobnRrem9wZnJwbnZ6enRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyMTEyNDgsImV4cCI6MjA2OTc4NzI0OH0.wcRVKBmlsBBXBfOJ8Vypit-b47gRFVvecp1TVxonvmU';
+const supabaseKey =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtreGNobnRrem9wZnJwbnZ6enRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyMTEyNDgsImV4cCI6MjA2OTc4NzI0OH0.wcRVKBmlsBBXBfOJ8Vypit-b47gRFVvecp1TVxonvmU';
 
 console.log('🔍 Supabase 데이터베이스 상태 확인 중...\n');
 
@@ -40,7 +41,9 @@ async function checkSupabaseDatabase() {
     if (tables && tables.length > 0) {
       console.log('📋 기존 테이블 목록:');
       tables.forEach((table, index) => {
-        console.log(`   ${index + 1}. ${table.table_name} (${table.table_type})`);
+        console.log(
+          `   ${index + 1}. ${table.table_name} (${table.table_type})`,
+        );
       });
       console.log('');
 
@@ -57,10 +60,14 @@ async function checkSupabaseDatabase() {
 
           if (!columnsError && columns) {
             console.log(`📊 ${table.table_name} 테이블:`);
-            columns.forEach(col => {
+            columns.forEach((col) => {
               const nullable = col.is_nullable === 'YES' ? 'NULL' : 'NOT NULL';
-              const defaultVal = col.column_default ? ` DEFAULT ${col.column_default}` : '';
-              console.log(`   - ${col.column_name}: ${col.data_type} ${nullable}${defaultVal}`);
+              const defaultVal = col.column_default
+                ? ` DEFAULT ${col.column_default}`
+                : '';
+              console.log(
+                `   - ${col.column_name}: ${col.data_type} ${nullable}${defaultVal}`,
+              );
             });
             console.log('');
           }
@@ -72,29 +79,37 @@ async function checkSupabaseDatabase() {
 
     // 4. Auth 사용자 확인
     console.log('4️⃣ Auth 시스템 확인...');
-    const { data: { users }, error: authError } = await supabase.auth.admin.listUsers();
+    const {
+      data: { users },
+      error: authError,
+    } = await supabase.auth.admin.listUsers();
 
     if (authError) {
-      console.log('⚠️  Auth 정보 확인 불가 (admin 권한 필요):', authError.message);
+      console.log(
+        '⚠️  Auth 정보 확인 불가 (admin 권한 필요):',
+        authError.message,
+      );
     } else {
       console.log(`👥 등록된 사용자 수: ${users?.length || 0}명`);
     }
 
     // 5. Storage 버킷 확인
     console.log('5️⃣ Storage 버킷 확인...');
-    const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+    const { data: buckets, error: bucketsError } =
+      await supabase.storage.listBuckets();
 
     if (bucketsError) {
       console.log('⚠️  Storage 정보 확인 불가:', bucketsError.message);
     } else {
       console.log(`🗂️  생성된 버킷 수: ${buckets?.length || 0}개`);
       if (buckets && buckets.length > 0) {
-        buckets.forEach(bucket => {
-          console.log(`   - ${bucket.name} (${bucket.public ? 'Public' : 'Private'})`);
+        buckets.forEach((bucket) => {
+          console.log(
+            `   - ${bucket.name} (${bucket.public ? 'Public' : 'Private'})`,
+          );
         });
       }
     }
-
   } catch (error) {
     console.error('❌ 예상치 못한 오류:', error);
   }

@@ -3,7 +3,7 @@ import {
   getRefreshTokenFromCookie,
   setRefreshTokenCookie,
 } from '~/utils/cookie-utils';
-import { verifyRefreshToken, generateAccessToken } from '~/utils/jwt-utils';
+import { generateAccessToken, verifyRefreshToken } from '~/utils/jwt-utils';
 import { forbiddenResponse } from '~/utils/response';
 
 // Supabase 리프레시 로직
@@ -13,9 +13,10 @@ async function refreshWithSupabase(event: any, refreshToken: string) {
     const { supabase } = await import('@vben/utils');
 
     // Supabase 세션 갱신
-    const { data: authData, error: authError } = await supabase.auth.refreshSession({
-      refresh_token: refreshToken,
-    });
+    const { data: authData, error: authError } =
+      await supabase.auth.refreshSession({
+        refresh_token: refreshToken,
+      });
 
     if (authError || !authData.session) {
       clearRefreshTokenCookie(event);
@@ -30,7 +31,6 @@ async function refreshWithSupabase(event: any, refreshToken: string) {
     return useResponseSuccess({
       accessToken: authData.session.access_token,
     });
-
   } catch (error) {
     console.error('Supabase 토큰 갱신 오류:', error);
     clearRefreshTokenCookie(event);
@@ -69,8 +69,9 @@ export default defineEventHandler(async (event) => {
   clearRefreshTokenCookie(event);
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 토큰 갱신');

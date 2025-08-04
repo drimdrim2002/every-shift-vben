@@ -11,9 +11,10 @@ async function getMenuListWithSupabase(event: any, userinfo: any) {
     const query = getQuery(event);
     const page = Number(query.page) || 1;
     const pageSize = Number(query.pageSize) || 10;
-    const search = query.search as string || '';
-    const type = query.type as string || '';
-    const status = query.status !== undefined ? Number(query.status) : undefined;
+    const search = (query.search as string) || '';
+    const type = (query.type as string) || '';
+    const status =
+      query.status === undefined ? undefined : Number(query.status);
 
     // 검색 조건 구성
     let menuQuery = supabase.from('menus').select('*', { count: 'exact' });
@@ -21,7 +22,7 @@ async function getMenuListWithSupabase(event: any, userinfo: any) {
     // 검색 필터
     if (search) {
       menuQuery = menuQuery.or(
-        `name.ilike.%${search}%,path.ilike.%${search}%,meta->>title.ilike.%${search}%`
+        `name.ilike.%${search}%,path.ilike.%${search}%,meta->>title.ilike.%${search}%`,
       );
     }
 
@@ -52,7 +53,7 @@ async function getMenuListWithSupabase(event: any, userinfo: any) {
     }
 
     // 응답 데이터 포맷팅
-    const formattedMenus = (menus || []).map(menu => ({
+    const formattedMenus = (menus || []).map((menu) => ({
       id: menu.id,
       pid: menu.pid,
       name: menu.name,
@@ -69,9 +70,8 @@ async function getMenuListWithSupabase(event: any, userinfo: any) {
 
     return usePageResponseSuccess(page, pageSize, formattedMenus, {
       message: 'ok',
-      total: count || 0
+      total: count || 0,
     });
-
   } catch (error) {
     console.error('Supabase 메뉴 목록 조회 오류:', error);
     return useResponseError('메뉴 목록 조회 중 오류가 발생했습니다.');
@@ -90,21 +90,22 @@ function getMenuListWithMock(event: any) {
   // 검색 필터링
   if (query.search) {
     const search = (query.search as string).toLowerCase();
-    menuList = menuList.filter(menu =>
-      menu.name.toLowerCase().includes(search) ||
-      (menu.path && menu.path.toLowerCase().includes(search)) ||
-      (menu.meta?.title && menu.meta.title.toLowerCase().includes(search))
+    menuList = menuList.filter(
+      (menu) =>
+        menu.name.toLowerCase().includes(search) ||
+        (menu.path && menu.path.toLowerCase().includes(search)) ||
+        (menu.meta?.title && menu.meta.title.toLowerCase().includes(search)),
     );
   }
 
   // 타입 필터링
   if (query.type) {
-    menuList = menuList.filter(menu => menu.type === query.type);
+    menuList = menuList.filter((menu) => menu.type === query.type);
   }
 
   // 상태 필터링
   if (query.status !== undefined) {
-    menuList = menuList.filter(menu => menu.status === Number(query.status));
+    menuList = menuList.filter((menu) => menu.status === Number(query.status));
   }
 
   return usePageResponseSuccess(page, pageSize, menuList);
@@ -118,14 +119,15 @@ export default eventHandler(async (event) => {
 
   // 관리자 권한 확인
   const userRole = userinfo.roles?.[0] || 'user';
-  if (!['super', 'admin'].includes(userRole)) {
+  if (!['admin', 'super'].includes(userRole)) {
     setResponseStatus(event, 403);
     return useResponseError('메뉴 관리 권한이 없습니다.');
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 메뉴 관리 목록 조회');

@@ -16,7 +16,10 @@ async function getUserInfoWithSupabase(event: any) {
     const token = authHeader.split(' ')[1];
 
     // Supabase에서 사용자 정보 조회
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return unAuthorizedResponse(event);
@@ -36,13 +39,13 @@ async function getUserInfoWithSupabase(event: any) {
     // 사용자 역할 조회
     const { data: userRoles } = await supabase
       .rpc('get_user_roles', { user_id: user.id })
-      .then(result => result)
+      .then((result) => result)
       .catch(() => ({ data: ['user'] }));
 
     // 사용자 권한 조회
     const { data: userPermissions } = await supabase
       .rpc('get_user_permissions', { user_id: user.id })
-      .then(result => result)
+      .then((result) => result)
       .catch(() => ({ data: [] }));
 
     // 응답 데이터 구성 (기존 mock 형식과 호환)
@@ -65,7 +68,6 @@ async function getUserInfoWithSupabase(event: any) {
     };
 
     return useResponseSuccess(userData);
-
   } catch (error) {
     console.error('Supabase 사용자 정보 조회 오류:', error);
     return unAuthorizedResponse(event);
@@ -83,8 +85,9 @@ function getUserInfoWithMock(event: any) {
 
 export default eventHandler(async (event) => {
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 사용자 정보 조회');

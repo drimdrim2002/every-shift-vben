@@ -1,7 +1,10 @@
 import type { UploadFile } from 'ant-design-vue/es/upload/interface';
-import { ref, computed } from 'vue';
-import { message } from 'ant-design-vue';
+
+import { computed, ref } from 'vue';
+
 import { supabase } from '@vben/utils';
+
+import { message } from 'ant-design-vue';
 
 export interface FileUploadOptions {
   bucket?: string;
@@ -37,11 +40,19 @@ export function useFileUpload(options: FileUploadOptions = {}) {
     tags = [],
     maxSize = 10 * 1024 * 1024, // 10MB
     allowedTypes = [
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
-      'application/pdf', 'text/plain', 'text/csv',
-      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    ]
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml',
+      'application/pdf',
+      'text/plain',
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ],
   } = options;
 
   const uploading = ref(false);
@@ -54,12 +65,12 @@ export function useFileUpload(options: FileUploadOptions = {}) {
   });
 
   // 파일 유효성 검사
-  const validateFile = (file: File): { valid: boolean; error?: string } => {
+  const validateFile = (file: File): { error?: string; valid: boolean } => {
     // 파일 크기 검사
     if (file.size > maxSize) {
       return {
         valid: false,
-        error: `파일 크기는 ${Math.round(maxSize / 1024 / 1024)}MB 이하여야 합니다.`
+        error: `파일 크기는 ${Math.round(maxSize / 1024 / 1024)}MB 이하여야 합니다.`,
       };
     }
 
@@ -67,7 +78,7 @@ export function useFileUpload(options: FileUploadOptions = {}) {
     if (!allowedTypes.includes(file.type)) {
       return {
         valid: false,
-        error: '지원하지 않는 파일 형식입니다.'
+        error: '지원하지 않는 파일 형식입니다.',
       };
     }
 
@@ -75,7 +86,10 @@ export function useFileUpload(options: FileUploadOptions = {}) {
   };
 
   // 단일 파일 업로드 (Backend API 사용)
-  const uploadSingleFile = async (file: File, uploadOptions: Partial<FileUploadOptions> = {}): Promise<UploadedFileInfo> => {
+  const uploadSingleFile = async (
+    file: File,
+    uploadOptions: Partial<FileUploadOptions> = {},
+  ): Promise<UploadedFileInfo> => {
     const validation = validateFile(file);
     if (!validation.valid) {
       throw new Error(validation.error);
@@ -91,7 +105,7 @@ export function useFileUpload(options: FileUploadOptions = {}) {
       public: String(uploadOptions.isPublic ?? isPublic),
       alt_text: uploadOptions.altText || altText,
       description: uploadOptions.description || description,
-      ...(uploadOptions.tags && { tags: JSON.stringify(uploadOptions.tags) })
+      ...(uploadOptions.tags && { tags: JSON.stringify(uploadOptions.tags) }),
     });
 
     try {
@@ -108,7 +122,7 @@ export function useFileUpload(options: FileUploadOptions = {}) {
       const response = await fetch(`/api/upload?${params}`, {
         method: 'POST',
         body: formData,
-        credentials: 'include'
+        credentials: 'include',
       });
 
       clearInterval(progressInterval);
@@ -130,10 +144,11 @@ export function useFileUpload(options: FileUploadOptions = {}) {
 
       message.success('파일이 성공적으로 업로드되었습니다.');
       return uploadedFile;
-
     } catch (error) {
       console.error('파일 업로드 실패:', error);
-      message.error(error instanceof Error ? error.message : '파일 업로드에 실패했습니다.');
+      message.error(
+        error instanceof Error ? error.message : '파일 업로드에 실패했습니다.',
+      );
       throw error;
     } finally {
       uploading.value = false;
@@ -142,7 +157,10 @@ export function useFileUpload(options: FileUploadOptions = {}) {
   };
 
   // 다중 파일 업로드
-  const uploadMultipleFiles = async (files: File[], uploadOptions: Partial<FileUploadOptions> = {}): Promise<UploadedFileInfo[]> => {
+  const uploadMultipleFiles = async (
+    files: File[],
+    uploadOptions: Partial<FileUploadOptions> = {},
+  ): Promise<UploadedFileInfo[]> => {
     const results: UploadedFileInfo[] = [];
     const errors: string[] = [];
 
@@ -151,7 +169,8 @@ export function useFileUpload(options: FileUploadOptions = {}) {
         const result = await uploadSingleFile(file, uploadOptions);
         results.push(result);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+        const errorMessage =
+          error instanceof Error ? error.message : '알 수 없는 오류';
         errors.push(`${file.name}: ${errorMessage}`);
       }
     }
@@ -203,7 +222,9 @@ export function useFileUpload(options: FileUploadOptions = {}) {
 
   // 업로드된 파일 제거
   const removeUploadedFile = (fileId: string) => {
-    uploadedFiles.value = uploadedFiles.value.filter(file => file.id !== fileId);
+    uploadedFiles.value = uploadedFiles.value.filter(
+      (file) => file.id !== fileId,
+    );
   };
 
   // 모든 업로드된 파일 지우기
@@ -215,7 +236,7 @@ export function useFileUpload(options: FileUploadOptions = {}) {
   const uploadToSupabaseStorage = async (
     file: File,
     storagePath: string,
-    bucketName = 'user-uploads'
+    bucketName = 'user-uploads',
   ): Promise<string> => {
     if (!isSupabaseEnabled.value) {
       throw new Error('Supabase가 활성화되지 않았습니다.');
@@ -225,7 +246,7 @@ export function useFileUpload(options: FileUploadOptions = {}) {
       .from(bucketName)
       .upload(storagePath, file, {
         cacheControl: '3600',
-        upsert: false
+        upsert: false,
       });
 
     if (error) {

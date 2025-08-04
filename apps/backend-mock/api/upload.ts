@@ -14,7 +14,10 @@ async function uploadFileWithSupabase(event: any, userinfo: any) {
     }
 
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return unAuthorizedResponse(event);
@@ -27,7 +30,7 @@ async function uploadFileWithSupabase(event: any, userinfo: any) {
       return useResponseError('업로드할 파일이 없습니다.');
     }
 
-    const fileItem = form.find(item => item.name === 'file');
+    const fileItem = form.find((item) => item.name === 'file');
     if (!fileItem || !fileItem.data || !fileItem.filename) {
       setResponseStatus(event, 400);
       return useResponseError('유효한 파일이 아닙니다.');
@@ -41,10 +44,18 @@ async function uploadFileWithSupabase(event: any, userinfo: any) {
 
     // 파일 확장자 및 MIME 타입 검증
     const allowedMimeTypes = [
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
-      'application/pdf', 'text/plain', 'text/csv',
-      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml',
+      'application/pdf',
+      'text/plain',
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ];
 
     const mimeType = fileItem.type || 'application/octet-stream';
@@ -62,19 +73,21 @@ async function uploadFileWithSupabase(event: any, userinfo: any) {
 
     // 고유한 파일명 생성
     const fileExtension = fileItem.filename.split('.').pop() || '';
-    const uniqueFileName = `${category}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
+    const uniqueFileName = `${category}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExtension}`;
 
     // Supabase Storage에 파일 업로드
     const { data: uploadResult, error: uploadError } = await supabase.storage
       .from(bucketName)
       .upload(uniqueFileName, fileItem.data, {
         contentType: mimeType,
-        upsert: false
+        upsert: false,
       });
 
     if (uploadError) {
       console.error('파일 업로드 실패:', uploadError);
-      return useResponseError('파일 업로드에 실패했습니다: ' + uploadError.message);
+      return useResponseError(
+        `파일 업로드에 실패했습니다: ${uploadError.message}`,
+      );
     }
 
     // 공개 URL 생성
@@ -84,7 +97,7 @@ async function uploadFileWithSupabase(event: any, userinfo: any) {
 
     // 이미지인지 확인 및 메타데이터 추출
     const isImage = mimeType.startsWith('image/');
-    let width, height;
+    let height, width;
 
     if (isImage && mimeType !== 'image/svg+xml') {
       // 간단한 이미지 크기 추출 (실제 구현에서는 sharp 등을 사용할 수 있음)
@@ -107,15 +120,15 @@ async function uploadFileWithSupabase(event: any, userinfo: any) {
         file_size: fileItem.data.length,
         mime_type: mimeType,
         bucket_name: bucketName,
-        alt_text: query.alt_text as string || '',
-        description: query.description as string || '',
+        alt_text: (query.alt_text as string) || '',
+        description: (query.description as string) || '',
         tags: query.tags ? JSON.parse(query.tags as string) : [],
         width,
         height,
         is_image: isImage,
         uploaded_by: user.id,
         is_public: isPublic,
-        access_level: isPublic ? 'public' : 'private'
+        access_level: isPublic ? 'public' : 'private',
       })
       .select()
       .single();
@@ -140,9 +153,8 @@ async function uploadFileWithSupabase(event: any, userinfo: any) {
       height: fileRecord.height,
       isPublic: fileRecord.is_public,
       uploadedAt: fileRecord.uploaded_at,
-      message: '파일이 성공적으로 업로드되었습니다.'
+      message: '파일이 성공적으로 업로드되었습니다.',
     });
-
   } catch (error) {
     console.error('Supabase 파일 업로드 오류:', error);
     return useResponseError('파일 업로드 중 오류가 발생했습니다.');
@@ -159,13 +171,13 @@ function uploadFileWithMock() {
     url: 'https://unpkg.com/@vbenjs/static-source@0.1.7/source/logo-v1.webp',
     originalName: 'logo-v1.webp',
     fileName: 'mock-file.webp',
-    fileSize: 12345,
+    fileSize: 12_345,
     mimeType: 'image/webp',
     bucket: 'user-uploads',
     isImage: true,
     isPublic: true,
     uploadedAt: new Date().toISOString(),
-    message: 'Mock 파일 업로드 완료'
+    message: 'Mock 파일 업로드 완료',
   });
 }
 
@@ -182,8 +194,9 @@ export default eventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 파일 업로드');

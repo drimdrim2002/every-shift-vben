@@ -11,12 +11,17 @@ async function getMenusWithSupabase(event: any, userinfo: any) {
     const authHeader = getHeader(event, 'Authorization');
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
-      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser(token);
 
       if (!userError && user) {
         // Supabase 사용자의 메뉴 조회
-        const { data: menuTree, error: menuError } = await supabase
-          .rpc('get_menu_tree', { target_user_id: user.id });
+        const { data: menuTree, error: menuError } = await supabase.rpc(
+          'get_menu_tree',
+          { target_user_id: user.id },
+        );
 
         if (menuError) {
           console.warn('메뉴 조회 실패, 기본 메뉴 제공:', menuError);
@@ -31,7 +36,6 @@ async function getMenusWithSupabase(event: any, userinfo: any) {
 
     // Supabase 사용자가 아닌 경우 기본 메뉴 제공
     return getDefaultMenus(userinfo);
-
   } catch (error) {
     console.error('Supabase 메뉴 조회 오류:', error);
     return getDefaultMenus(userinfo);
@@ -79,7 +83,7 @@ function getDefaultMenus(userinfo: any) {
     ],
   };
 
-  let menus = [dashboardMenu];
+  const menus = [dashboardMenu];
 
   // 역할별 추가 메뉴
   if (userRole === 'super' || userRole === 'admin') {
@@ -114,7 +118,7 @@ function formatMenusForVueRouter(menuData: any[]): any[] {
   const rootMenus: any[] = [];
 
   // 1단계: 모든 메뉴를 맵에 저장
-  menuData.forEach(item => {
+  menuData.forEach((item) => {
     const formattedItem = {
       id: item.id,
       name: item.name,
@@ -137,7 +141,7 @@ function formatMenusForVueRouter(menuData: any[]): any[] {
   });
 
   // 2단계: 부모-자식 관계 설정
-  menuData.forEach(item => {
+  menuData.forEach((item) => {
     const currentMenu = menuMap.get(item.id);
 
     if (item.pid && menuMap.has(item.pid)) {
@@ -158,7 +162,7 @@ function formatMenusForVueRouter(menuData: any[]): any[] {
   // 3단계: 정렬
   const sortMenus = (menus: any[]) => {
     menus.sort((a, b) => (a.meta.order || 0) - (b.meta.order || 0));
-    menus.forEach(menu => {
+    menus.forEach((menu) => {
       if (menu.children && menu.children.length > 0) {
         sortMenus(menu.children);
       }
@@ -176,8 +180,9 @@ export default eventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 메뉴 조회');

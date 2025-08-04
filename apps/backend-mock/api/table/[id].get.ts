@@ -2,7 +2,11 @@ import { verifyAccessToken } from '~/utils/jwt-utils';
 import { unAuthorizedResponse } from '~/utils/response';
 
 // Supabase 상품 상세 조회
-async function getProductDetailWithSupabase(event: any, userinfo: any, productId: string) {
+async function getProductDetailWithSupabase(
+  event: any,
+  userinfo: any,
+  productId: string,
+) {
   try {
     // @ts-ignore - 동적 import
     const { supabase } = await import('@vben/utils');
@@ -44,7 +48,6 @@ async function getProductDetailWithSupabase(event: any, userinfo: any, productId
     };
 
     return useResponseSuccess(formattedProduct);
-
   } catch (error) {
     console.error('Supabase 상품 상세 조회 오류:', error);
     return useResponseError('상품 상세 조회 중 오류가 발생했습니다.');
@@ -98,8 +101,9 @@ export default eventHandler(async (event) => {
   }
 
   // 환경 변수에 따라 Supabase 또는 Mock 사용
-  const useSupabase = process.env.VITE_USE_SUPABASE === 'true' ||
-                     process.env.USE_SUPABASE === 'true';
+  const useSupabase =
+    process.env.VITE_USE_SUPABASE === 'true' ||
+    process.env.USE_SUPABASE === 'true';
 
   if (useSupabase) {
     console.log('🔄 Supabase 상품 상세 조회');

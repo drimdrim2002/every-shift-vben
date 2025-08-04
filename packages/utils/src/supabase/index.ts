@@ -1,26 +1,26 @@
-// Supabase Client
-export { supabase, isSupabaseEnabled, useSupabaseInDev } from './client';
-
 // Authentication
 export {
-  signInWithEmail,
-  signUp,
-  signOut,
-  getCurrentUser,
   getCurrentSession,
-  refreshSession,
+  getCurrentUser,
   onAuthStateChange,
+  refreshSession,
+  signInWithEmail,
+  signOut,
+  signUp,
 } from './auth';
-export type { LoginCredentials, AuthResponse } from './auth';
+
+export type { AuthResponse, LoginCredentials } from './auth';
+// Supabase Client
+export { isSupabaseEnabled, supabase, useSupabaseInDev } from './client';
 
 // Database
 export {
-  fetchWithPagination,
-  fetchById,
-  insertRecord,
-  updateRecord,
   deleteRecord,
+  fetchById,
+  fetchWithPagination,
+  insertRecord,
   subscribeToTable,
+  updateRecord,
 } from './database';
 export type {
   DatabaseResponse,
@@ -30,13 +30,13 @@ export type {
 
 // Storage
 export {
-  uploadFile,
-  getPublicUrl,
-  createSignedUrl,
-  listFiles,
-  deleteFile,
-  moveFile,
   copyFile,
+  createSignedUrl,
+  deleteFile,
+  getPublicUrl,
   getTransformedImageUrl,
+  listFiles,
+  moveFile,
+  uploadFile,
 } from './storage';
-export type { UploadResponse, UploadOptions } from './storage';
+export type { UploadOptions, UploadResponse } from './storage';
